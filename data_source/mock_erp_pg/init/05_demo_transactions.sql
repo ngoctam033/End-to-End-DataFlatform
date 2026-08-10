@@ -7,20 +7,20 @@ DECLARE
     v_invoice_id INTEGER;
 BEGIN
     -- Scenario: vip_customer_website_order_partial_payment
-    v_order_id := erp_sales.create_sales_order(1, 2, 1, DATE '2026-08-01');
-    PERFORM erp_sales.add_sales_order_line(v_order_id, 1, 1, 12, NULL, 0, 1);
-    PERFORM erp_sales.add_sales_order_line(v_order_id, 4, 1, 5, NULL, 0, NULL);
+    v_order_id := erp_sales.create_sales_order((SELECT customer_id FROM erp_core.customers WHERE customer_code = 'CUS-00001'), (SELECT channel_id FROM erp_core.sales_channels WHERE channel_code = 'WEB'), (SELECT branch_id FROM erp_core.branches WHERE branch_code = 'HN'), DATE '2026-08-01');
+    PERFORM erp_sales.add_sales_order_line(v_order_id, (SELECT product_id FROM erp_core.products WHERE sku = 'TEA-LEM-330'), (SELECT warehouse_id FROM erp_core.warehouses WHERE warehouse_code = 'WH-HN'), 12, NULL, 0, (SELECT promotion_id FROM erp_sales.promotions WHERE promotion_code = 'WEB-TEA-AUG10'));
+    PERFORM erp_sales.add_sales_order_line(v_order_id, (SELECT product_id FROM erp_core.products WHERE sku = 'BIS-OAT-120'), (SELECT warehouse_id FROM erp_core.warehouses WHERE warehouse_code = 'WH-HN'), 5, NULL, 0, NULL);
     PERFORM erp_sales.confirm_order(v_order_id);
-    PERFORM erp_sales.fulfill_order(v_order_id, DATE '2026-08-02', 2);
+    PERFORM erp_sales.fulfill_order(v_order_id, DATE '2026-08-02', (SELECT carrier_id FROM erp_core.carriers WHERE carrier_code = 'GHTK-EXP'));
     v_invoice_id := erp_finance.create_invoice_from_order(v_order_id, DATE '2026-08-02', 15);
     PERFORM erp_finance.record_payment(v_invoice_id, 100000, 'e_wallet', DATE '2026-08-03');
 
     -- Scenario: b2b_bulk_order_partial_payment
-    v_order_id := erp_sales.create_sales_order(3, 4, 2, DATE '2026-08-02');
-    PERFORM erp_sales.add_sales_order_line(v_order_id, 2, 2, 50, 10000, 0, 3);
-    PERFORM erp_sales.add_sales_order_line(v_order_id, 3, 2, 20, 20000, 20000, NULL);
+    v_order_id := erp_sales.create_sales_order((SELECT customer_id FROM erp_core.customers WHERE customer_code = 'CUS-00003'), (SELECT channel_id FROM erp_core.sales_channels WHERE channel_code = 'B2B'), (SELECT branch_id FROM erp_core.branches WHERE branch_code = 'HCM'), DATE '2026-08-02');
+    PERFORM erp_sales.add_sales_order_line(v_order_id, (SELECT product_id FROM erp_core.products WHERE sku = 'TEA-PEA-330'), (SELECT warehouse_id FROM erp_core.warehouses WHERE warehouse_code = 'WH-HCM'), 50, 10000, 0, (SELECT promotion_id FROM erp_sales.promotions WHERE promotion_code = 'B2B-BULK-AUG5'));
+    PERFORM erp_sales.add_sales_order_line(v_order_id, (SELECT product_id FROM erp_core.products WHERE sku = 'JUI-ORA-500'), (SELECT warehouse_id FROM erp_core.warehouses WHERE warehouse_code = 'WH-HCM'), 20, 20000, 20000, NULL);
     PERFORM erp_sales.confirm_order(v_order_id);
-    PERFORM erp_sales.fulfill_order(v_order_id, DATE '2026-08-04', 5);
+    PERFORM erp_sales.fulfill_order(v_order_id, DATE '2026-08-04', (SELECT carrier_id FROM erp_core.carriers WHERE carrier_code = 'INTERNAL-B2B'));
     v_invoice_id := erp_finance.create_invoice_from_order(v_order_id, DATE '2026-08-04', 30);
     PERFORM erp_finance.record_payment(v_invoice_id, 300000, 'bank_transfer', DATE '2026-08-05');
 

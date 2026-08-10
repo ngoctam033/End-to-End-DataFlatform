@@ -50,6 +50,27 @@ docker compose -f docker-compose.mock_erp_pg.yml down -v
 docker compose -f docker-compose.mock_erp_pg.yml up --abort-on-container-exit mock_erp_pg_tests
 ```
 
+Run the continuous transaction producer:
+
+```bash
+docker compose -f docker-compose.mock_erp_pg.yml up -d --build mock_data_producer
+```
+
+Run the producer locally with one Python file:
+
+```bash
+cd ../..
+python data_source/mock_data_factory/run_mock_data_producer.py
+```
+
+Optional producer tuning:
+
+```bash
+MOCK_DATA_PRODUCER_INTERVAL_SECONDS=5 \
+MOCK_DATA_PRODUCER_DAYS_PER_BATCH=1 \
+docker compose -f docker-compose.mock_erp_pg.yml up -d --build mock_data_producer
+```
+
 Connection:
 
 ```text

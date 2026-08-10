@@ -39,6 +39,21 @@ services:
     networks:
       - default
 
+  mock_data_producer:
+    build:
+      context: ../..
+      dockerfile: data_source/mock_data_factory/Dockerfile
+    container_name: mock_data_producer
+    depends_on:
+      mock_erp_pg:
+        condition: service_healthy
+    environment:
+      MOCK_DATA_PRODUCER_DATABASE_URL: postgresql://mock_erp:mock_erp@mock_erp_pg:5432/mock_erp
+      MOCK_DATA_PRODUCER_INTERVAL_SECONDS: ${MOCK_DATA_PRODUCER_INTERVAL_SECONDS:-10}
+      MOCK_DATA_PRODUCER_DAYS_PER_BATCH: ${MOCK_DATA_PRODUCER_DAYS_PER_BATCH:-1}
+    networks:
+      - default
+
 volumes:
   mock-erp-pg-data:
 
@@ -46,4 +61,3 @@ networks:
   default:
     name: end2end_data_network
     external: true
-

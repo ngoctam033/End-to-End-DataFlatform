@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
+import subprocess
 
+from data_source.mock_data_factory.interfaces import TransactionWriter
 from data_source.mock_data_factory.models import BusinessScenarioSet
 
 
@@ -20,6 +23,43 @@ def sql_numeric(value: Decimal | int | None) -> str:
     if value is None:
         return "NULL"
     return str(value)
+
+
+def sql_lookup(table_name: str, id_column: str, code_column: str, code: str | None) -> str:
+    if code is None:
+        return "NULL"
+    return (
+        f"(SELECT {id_column} FROM {table_name} "
+        f"WHERE {code_column} = {sql_string(code)})"
+    )
+
+
+def customer_id(customer_code: str) -> str:
+    return sql_lookup("erp_core.customers", "customer_id", "customer_code", customer_code)
+
+
+def channel_id(channel_code: str) -> str:
+    return sql_lookup("erp_core.sales_channels", "channel_id", "channel_code", channel_code)
+
+
+def branch_id(branch_code: str) -> str:
+    return sql_lookup("erp_core.branches", "branch_id", "branch_code", branch_code)
+
+
+def product_id(sku: str) -> str:
+    return sql_lookup("erp_core.products", "product_id", "sku", sku)
+
+
+def warehouse_id(warehouse_code: str) -> str:
+    return sql_lookup("erp_core.warehouses", "warehouse_id", "warehouse_code", warehouse_code)
+
+
+def promotion_id(promotion_code: str | None) -> str:
+    return sql_lookup("erp_sales.promotions", "promotion_id", "promotion_code", promotion_code)
+
+
+def carrier_id(carrier_code: str) -> str:
+    return sql_lookup("erp_core.carriers", "carrier_id", "carrier_code", carrier_code)
 
 
 def render_mock_erp_pg_sql(scenario_set: BusinessScenarioSet) -> str:
@@ -39,16 +79,17 @@ def render_mock_erp_pg_sql(scenario_set: BusinessScenarioSet) -> str:
             [
                 f"    -- Scenario: {order.name}",
                 "    v_order_id := erp_sales.create_sales_order("
-                f"{order.customer_id}, {order.channel_id}, {order.branch_id}, {sql_date(order.order_date)});",
+                f"{customer_id(order.customer_code)}, {channel_id(order.channel_code)}, "
+                f"{branch_id(order.branch_code)}, {sql_date(order.order_date)});",
             ]
         )
 
         for order_line in order.lines:
             lines.append(
                 "    PERFORM erp_sales.add_sales_order_line("
-                f"v_order_id, {order_line.product_id}, {order_line.warehouse_id}, "
+                f"v_order_id, {product_id(order_line.sku)}, {warehouse_id(order_line.warehouse_code)}, "
                 f"{sql_numeric(order_line.quantity)}, {sql_numeric(order_line.unit_price)}, "
-                f"{sql_numeric(order_line.discount_amount)}, {sql_numeric(order_line.promotion_id)});"
+                f"{sql_numeric(order_line.discount_amount)}, {promotion_id(order_line.promotion_code)});"
             )
 
         lines.append("    PERFORM erp_sales.confirm_order(v_order_id);")
@@ -56,7 +97,7 @@ def render_mock_erp_pg_sql(scenario_set: BusinessScenarioSet) -> str:
         if order.fulfillment_date is not None:
             lines.append(
                 "    PERFORM erp_sales.fulfill_order("
-                f"v_order_id, {sql_date(order.fulfillment_date)}, {order.carrier_id});"
+                f"v_order_id, {sql_date(order.fulfillment_date)}, {carrier_id(order.carrier_code)});"
             )
 
         if order.invoice_date is not None:
@@ -76,3 +117,54 @@ def render_mock_erp_pg_sql(scenario_set: BusinessScenarioSet) -> str:
 
     lines.extend(["END;", "$$;", ""])
     return "\n".join(lines)
+
+
+class MockErpPgTransactionWriter(TransactionWriter):
+    """Writes transactions to mock ERP PostgreSQL through PL/pgSQL functions."""
+
+    def __init__(self, database_url: str) -> None:
+        self.database_url = database_url
+
+    def write(self, scenario_set: BusinessScenarioSet) -> None:
+        try:
+            import psycopg
+        except ImportError as exc:
+            raise RuntimeError(
+                "psycopg is required to write directly to PostgreSQL. "
+                "Install dependencies from data_source/mock_data_factory/requirements.txt."
+            ) from exc
+
+        payload = render_mock_erp_pg_sql(scenario_set)
+
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(payload)
+            connection.commit()
+
+
+class MockErpPgDockerPsqlTransactionWriter(TransactionWriter):
+    """Writes transactions through psql inside the mock ERP PostgreSQL container."""
+
+    def __init__(self, compose_file: Path) -> None:
+        self.compose_file = compose_file
+
+    def write(self, scenario_set: BusinessScenarioSet) -> None:
+        payload = render_mock_erp_pg_sql(scenario_set)
+        subprocess.run(
+            [
+                "docker",
+                "compose",
+                "-f",
+                str(self.compose_file),
+                "exec",
+                "-T",
+                "mock_erp_pg",
+                "psql",
+                "--username=mock_erp",
+                "--dbname=mock_erp",
+                "--set=ON_ERROR_STOP=1",
+            ],
+            input=payload,
+            text=True,
+            check=True,
+        )

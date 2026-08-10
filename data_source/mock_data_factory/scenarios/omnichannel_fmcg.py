@@ -2,18 +2,12 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date
+from datetime import timedelta
 from decimal import Decimal
 
-from data_source.mock_data_factory.catalog import (
-    BRANCHES,
-    CARRIERS,
-    CHANNELS,
-    CUSTOMERS,
-    PRODUCTS,
-    PROMOTIONS,
-    WAREHOUSES,
-)
+from data_source.mock_data_factory.interfaces import TransactionScenarioProvider
 from data_source.mock_data_factory.models import (
     BusinessScenarioSet,
     OrderLineScenario,
@@ -22,31 +16,83 @@ from data_source.mock_data_factory.models import (
 )
 
 
+def shift_scenario_set(scenario_set: BusinessScenarioSet, days: int) -> BusinessScenarioSet:
+    """Shift transaction dates while keeping master-data business codes stable."""
+    delta = timedelta(days=days)
+    shifted_orders = []
+
+    for order in scenario_set.sales_orders:
+        shifted_payments = tuple(
+            replace(payment, payment_date=payment.payment_date + delta)
+            for payment in order.payments
+        )
+        shifted_returns = tuple(
+            replace(return_item, return_date=return_item.return_date + delta)
+            for return_item in order.returns
+        )
+        shifted_orders.append(
+            replace(
+                order,
+                order_date=order.order_date + delta,
+                fulfillment_date=order.fulfillment_date + delta
+                if order.fulfillment_date is not None
+                else None,
+                invoice_date=order.invoice_date + delta
+                if order.invoice_date is not None
+                else None,
+                payments=shifted_payments,
+                returns=shifted_returns,
+            )
+        )
+
+    return replace(scenario_set, sales_orders=tuple(shifted_orders))
+
+
+class OmnichannelFmcgScenarioProvider(TransactionScenarioProvider):
+    """Produces repeatable omnichannel transaction batches."""
+
+    def __init__(self, days_per_batch: int = 1) -> None:
+        if days_per_batch < 0:
+            raise ValueError("days_per_batch must be zero or positive")
+
+        self._base_scenario_set = build_scenario_set()
+        self._days_per_batch = days_per_batch
+        self._batch_index = 0
+
+    def next_batch(self) -> BusinessScenarioSet:
+        scenario_set = shift_scenario_set(
+            self._base_scenario_set,
+            days=self._batch_index * self._days_per_batch,
+        )
+        self._batch_index += 1
+        return scenario_set
+
+
 def build_scenario_set() -> BusinessScenarioSet:
     return BusinessScenarioSet(
         name="omnichannel_d2c_fmcg",
         sales_orders=(
             SalesOrderScenario(
                 name="vip_customer_website_order_partial_payment",
-                customer_id=CUSTOMERS["vip_hanoi"],
-                channel_id=CHANNELS["website"],
-                branch_id=BRANCHES["hanoi"],
+                customer_code="CUS-00001",
+                channel_code="WEB",
+                branch_code="HN",
                 order_date=date(2026, 8, 1),
                 lines=(
                     OrderLineScenario(
-                        product_id=PRODUCTS["lemon_tea_330ml"],
-                        warehouse_id=WAREHOUSES["hanoi"],
+                        sku="TEA-LEM-330",
+                        warehouse_code="WH-HN",
                         quantity=Decimal("12"),
-                        promotion_id=PROMOTIONS["website_tea_aug10"],
+                        promotion_code="WEB-TEA-AUG10",
                     ),
                     OrderLineScenario(
-                        product_id=PRODUCTS["oat_biscuit_120g"],
-                        warehouse_id=WAREHOUSES["hanoi"],
+                        sku="BIS-OAT-120",
+                        warehouse_code="WH-HN",
                         quantity=Decimal("5"),
                     ),
                 ),
                 fulfillment_date=date(2026, 8, 2),
-                carrier_id=CARRIERS["ghtk_express"],
+                carrier_code="GHTK-EXP",
                 invoice_date=date(2026, 8, 2),
                 due_days=15,
                 payments=(
@@ -59,28 +105,28 @@ def build_scenario_set() -> BusinessScenarioSet:
             ),
             SalesOrderScenario(
                 name="b2b_bulk_order_partial_payment",
-                customer_id=CUSTOMERS["b2b_danang"],
-                channel_id=CHANNELS["b2b"],
-                branch_id=BRANCHES["hcm"],
+                customer_code="CUS-00003",
+                channel_code="B2B",
+                branch_code="HCM",
                 order_date=date(2026, 8, 2),
                 lines=(
                     OrderLineScenario(
-                        product_id=PRODUCTS["peach_tea_330ml"],
-                        warehouse_id=WAREHOUSES["hcm"],
+                        sku="TEA-PEA-330",
+                        warehouse_code="WH-HCM",
                         quantity=Decimal("50"),
                         unit_price=Decimal("10000"),
-                        promotion_id=PROMOTIONS["b2b_bulk_aug5"],
+                        promotion_code="B2B-BULK-AUG5",
                     ),
                     OrderLineScenario(
-                        product_id=PRODUCTS["orange_juice_500ml"],
-                        warehouse_id=WAREHOUSES["hcm"],
+                        sku="JUI-ORA-500",
+                        warehouse_code="WH-HCM",
                         quantity=Decimal("20"),
                         unit_price=Decimal("20000"),
                         discount_amount=Decimal("20000"),
                     ),
                 ),
                 fulfillment_date=date(2026, 8, 4),
-                carrier_id=CARRIERS["internal_b2b_fleet"],
+                carrier_code="INTERNAL-B2B",
                 invoice_date=date(2026, 8, 4),
                 due_days=30,
                 payments=(
