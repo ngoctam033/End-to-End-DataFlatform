@@ -1,0 +1,49 @@
+services:
+  mock_erp_pg:
+    image: postgres:16
+    container_name: mock_erp_pg
+    environment:
+      POSTGRES_DB: mock_erp
+      POSTGRES_USER: mock_erp
+      POSTGRES_PASSWORD: mock_erp
+    ports:
+      - "${MOCK_ERP_PG_EXTERNAL_PORT:-55432}:5432"
+    volumes:
+      - mock-erp-pg-data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mock_erp -d mock_erp"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - default
+
+  mock_erp_pg_tests:
+    image: postgres:16
+    container_name: mock_erp_pg_tests
+    depends_on:
+      mock_erp_pg:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: mock_erp
+    volumes:
+      - ./tests:/tests:ro
+    command: >
+      psql
+      --host=mock_erp_pg
+      --username=mock_erp
+      --dbname=mock_erp
+      --set=ON_ERROR_STOP=1
+      --file=/tests/business_rules.sql
+    networks:
+      - default
+
+volumes:
+  mock-erp-pg-data:
+
+networks:
+  default:
+    name: end2end_data_network
+    external: true
+
