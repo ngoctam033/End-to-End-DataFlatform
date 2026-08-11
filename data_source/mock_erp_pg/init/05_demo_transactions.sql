@@ -6,6 +6,8 @@ DECLARE
     v_order_id INTEGER;
     v_invoice_id INTEGER;
 BEGIN
+    PERFORM erp_inventory.replenish_demo_stock(DATE '2026-08-01');
+
     -- Scenario: vip_customer_website_order_partial_payment
     v_order_id := erp_sales.create_sales_order((SELECT customer_id FROM erp_core.customers WHERE customer_code = 'CUS-00001'), (SELECT channel_id FROM erp_core.sales_channels WHERE channel_code = 'WEB'), (SELECT branch_id FROM erp_core.branches WHERE branch_code = 'HN'), DATE '2026-08-01');
     PERFORM erp_sales.add_sales_order_line(v_order_id, (SELECT product_id FROM erp_core.products WHERE sku = 'TEA-LEM-330'), (SELECT warehouse_id FROM erp_core.warehouses WHERE warehouse_code = 'WH-HN'), 12, NULL, 0, (SELECT promotion_id FROM erp_sales.promotions WHERE promotion_code = 'WEB-TEA-AUG10'));

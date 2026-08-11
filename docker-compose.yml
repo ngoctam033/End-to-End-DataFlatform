@@ -1,0 +1,10 @@
+include:
+  - path: data_source/mock_erp_pg/docker-compose.mock_erp_pg.yml
+  - path: data_source/odoo/docker-compose.odoo.yml
+  - path: orchestration/airflow/docker-compose.airflow.yaml
+  - path: storage/minio/docker-compose.minio.yaml
+
+networks:
+  default:
+    name: end2end_data_network
+    driver: bridge

@@ -73,6 +73,77 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION erp_inventory.replenish_demo_stock(
+    p_receipt_date DATE DEFAULT CURRENT_DATE,
+    p_min_available_qty NUMERIC DEFAULT 300,
+    p_replenish_qty NUMERIC DEFAULT 1000
+)
+RETURNS INTEGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_balance RECORD;
+    v_receipt_count INTEGER := 0;
+BEGIN
+    IF p_min_available_qty < 0 THEN
+        RAISE EXCEPTION 'Minimum available quantity cannot be negative';
+    END IF;
+
+    IF p_replenish_qty <= 0 THEN
+        RAISE EXCEPTION 'Replenishment quantity must be positive';
+    END IF;
+
+    FOR v_balance IN
+        SELECT
+            sb.warehouse_id,
+            sb.product_id,
+            sb.on_hand_qty,
+            sb.reserved_qty,
+            p.standard_cost
+        FROM erp_inventory.stock_balances sb
+        JOIN erp_core.products p ON p.product_id = sb.product_id
+        WHERE sb.on_hand_qty - sb.reserved_qty < p_min_available_qty
+        FOR UPDATE OF sb
+    LOOP
+        UPDATE erp_inventory.stock_balances
+        SET
+            on_hand_qty = on_hand_qty + p_replenish_qty,
+            updated_at = now()
+        WHERE warehouse_id = v_balance.warehouse_id
+          AND product_id = v_balance.product_id;
+
+        INSERT INTO erp_inventory.stock_moves (
+            warehouse_id,
+            product_id,
+            order_line_id,
+            move_type,
+            move_date,
+            quantity,
+            unit_cost,
+            move_value,
+            reference_number
+        )
+        VALUES (
+            v_balance.warehouse_id,
+            v_balance.product_id,
+            NULL,
+            'purchase_receipt',
+            p_receipt_date,
+            p_replenish_qty,
+            v_balance.standard_cost,
+            p_replenish_qty * v_balance.standard_cost,
+            'AUTO-REPLENISH-' || to_char(p_receipt_date, 'YYYYMMDD') || '-'
+                || v_balance.warehouse_id || '-' || v_balance.product_id || '-'
+                || nextval('erp_inventory.stock_moves_stock_move_id_seq')
+        );
+
+        v_receipt_count := v_receipt_count + 1;
+    END LOOP;
+
+    RETURN v_receipt_count;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION erp_inventory.reserve_stock(
     p_warehouse_id INTEGER,
     p_product_id INTEGER,

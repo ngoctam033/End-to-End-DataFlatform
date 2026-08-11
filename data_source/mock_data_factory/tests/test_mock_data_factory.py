@@ -11,6 +11,7 @@ from data_source.mock_data_factory.adapters.mock_erp_pg import render_mock_erp_p
 from data_source.mock_data_factory.interfaces import TransactionWriter
 from data_source.mock_data_factory.models import BusinessScenarioSet
 from data_source.mock_data_factory.producer import DEFAULT_DATABASE_URL
+from data_source.mock_data_factory.producer import format_scenario_record_log
 from data_source.mock_data_factory.producer import parse_args
 from data_source.mock_data_factory.producer import run_producer
 from data_source.mock_data_factory.scenarios.omnichannel_fmcg import (
@@ -53,6 +54,7 @@ class MockDataFactoryTest(unittest.TestCase):
         self.assertIn("erp_sales.fulfill_order", sql)
         self.assertIn("erp_finance.create_invoice_from_order", sql)
         self.assertIn("erp_finance.record_payment", sql)
+        self.assertIn("erp_inventory.replenish_demo_stock", sql)
         self.assertIn("customer_code = 'CUS-00001'", sql)
         self.assertIn("sku = 'TEA-LEM-330'", sql)
         self.assertIn("promotion_code = 'WEB-TEA-AUG10'", sql)
@@ -137,6 +139,18 @@ class MockDataFactoryTest(unittest.TestCase):
         self.assertIn("psql", command)
         self.assertIn("erp_sales.create_sales_order", run_mock.call_args.kwargs["input"])
         self.assertTrue(run_mock.call_args.kwargs["check"])
+
+    def test_producer_log_contains_record_level_values(self) -> None:
+        log_text = format_scenario_record_log(1, build_scenario_set())
+
+        self.assertIn("mock_transaction_batch=1", log_text)
+        self.assertIn("sales_order index=1", log_text)
+        self.assertIn("customer_code=CUS-00001", log_text)
+        self.assertIn("sku=TEA-LEM-330", log_text)
+        self.assertIn("quantity=12", log_text)
+        self.assertIn("promotion_code=WEB-TEA-AUG10", log_text)
+        self.assertIn("carrier_code=GHTK-EXP", log_text)
+        self.assertIn("payment index=1 amount=100000", log_text)
 
 
 if __name__ == "__main__":

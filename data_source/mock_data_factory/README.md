@@ -53,12 +53,12 @@ docker compose -f docker-compose.mock_erp_pg.yml up -d mock_erp_pg
 
 ## Run Continuous Producer
 
-Start the mock ERP database:
+Start the mock ERP backend and the continuous producer:
 
 ```bash
 docker network inspect end2end_data_network >/dev/null 2>&1 || docker network create end2end_data_network
 cd data_source/mock_erp_pg
-docker compose -f docker-compose.mock_erp_pg.yml up -d mock_erp_pg
+docker compose -f docker-compose.mock_erp_pg.yml up -d --build
 ```
 
 Run the producer locally with default settings:
@@ -85,7 +85,7 @@ Or run it as a Docker Compose service:
 
 ```bash
 cd data_source/mock_erp_pg
-docker compose -f docker-compose.mock_erp_pg.yml up -d --build mock_data_producer
+docker compose -f docker-compose.mock_erp_pg.yml up -d --build
 ```
 
 For a short smoke test, limit the number of batches:

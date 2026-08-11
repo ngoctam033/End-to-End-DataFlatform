@@ -40,20 +40,22 @@ Later, this source can be replaced by Odoo or another ERP backend while keeping 
 From this folder:
 
 ```bash
-docker compose -f docker-compose.mock_erp_pg.yml up -d mock_erp_pg
+docker compose -f docker-compose.mock_erp_pg.yml up -d --build
 ```
+
+This starts both the PostgreSQL backend and the continuous transaction producer.
 
 Run business-rule tests:
 
 ```bash
 docker compose -f docker-compose.mock_erp_pg.yml down -v
-docker compose -f docker-compose.mock_erp_pg.yml up --abort-on-container-exit mock_erp_pg_tests
+docker compose -f docker-compose.mock_erp_pg.yml --profile test up --abort-on-container-exit mock_erp_pg_tests
 ```
 
 Run the continuous transaction producer:
 
 ```bash
-docker compose -f docker-compose.mock_erp_pg.yml up -d --build mock_data_producer
+docker compose -f docker-compose.mock_erp_pg.yml up -d --build
 ```
 
 Run the producer locally with one Python file:
@@ -68,7 +70,7 @@ Optional producer tuning:
 ```bash
 MOCK_DATA_PRODUCER_INTERVAL_SECONDS=5 \
 MOCK_DATA_PRODUCER_DAYS_PER_BATCH=1 \
-docker compose -f docker-compose.mock_erp_pg.yml up -d --build mock_data_producer
+docker compose -f docker-compose.mock_erp_pg.yml up -d --build
 ```
 
 Connection:

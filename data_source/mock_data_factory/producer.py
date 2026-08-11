@@ -14,6 +14,7 @@ from data_source.mock_data_factory.interfaces import (
 from data_source.mock_data_factory.scenarios.omnichannel_fmcg import (
     OmnichannelFmcgScenarioProvider,
 )
+from data_source.mock_data_factory.models import BusinessScenarioSet
 
 DEFAULT_TARGET = "mock_erp_pg"
 DEFAULT_DATABASE_URL = "postgresql://mock_erp:mock_erp@localhost:55432/mock_erp"
@@ -58,6 +59,72 @@ def _optional_int(value: str | None) -> int | None:
     return int(value)
 
 
+def format_scenario_record_log(batch_count: int, scenario_set: BusinessScenarioSet) -> str:
+    lines = [
+        f"mock_transaction_batch={batch_count} scenario_set={scenario_set.name} "
+        f"sales_orders={len(scenario_set.sales_orders)}"
+    ]
+
+    for order_index, order in enumerate(scenario_set.sales_orders, start=1):
+        lines.append(
+            "  sales_order "
+            f"index={order_index} "
+            f"scenario={order.name} "
+            f"customer_code={order.customer_code} "
+            f"channel_code={order.channel_code} "
+            f"branch_code={order.branch_code} "
+            f"order_date={order.order_date.isoformat()} "
+            f"lines={len(order.lines)}"
+        )
+
+        for line_index, order_line in enumerate(order.lines, start=1):
+            lines.append(
+                "    sales_order_line "
+                f"index={line_index} "
+                f"sku={order_line.sku} "
+                f"warehouse_code={order_line.warehouse_code} "
+                f"quantity={order_line.quantity} "
+                f"unit_price={order_line.unit_price if order_line.unit_price is not None else 'AUTO'} "
+                f"discount_amount={order_line.discount_amount} "
+                f"promotion_code={order_line.promotion_code or 'NONE'}"
+            )
+
+        if order.fulfillment_date is not None:
+            lines.append(
+                "    shipment "
+                f"carrier_code={order.carrier_code} "
+                f"fulfillment_date={order.fulfillment_date.isoformat()}"
+            )
+
+        if order.invoice_date is not None:
+            lines.append(
+                "    invoice "
+                f"invoice_date={order.invoice_date.isoformat()} "
+                f"due_days={order.due_days}"
+            )
+
+        for payment_index, payment in enumerate(order.payments, start=1):
+            lines.append(
+                "    payment "
+                f"index={payment_index} "
+                f"amount={payment.amount} "
+                f"method={payment.method} "
+                f"payment_date={payment.payment_date.isoformat()}"
+            )
+
+        for return_index, return_item in enumerate(order.returns, start=1):
+            lines.append(
+                "    return "
+                f"index={return_index} "
+                f"line_index={return_item.line_index} "
+                f"quantity={return_item.quantity} "
+                f"reason={return_item.reason} "
+                f"return_date={return_item.return_date.isoformat()}"
+            )
+
+    return "\n".join(lines)
+
+
 def run_producer(
     scenario_provider: TransactionScenarioProvider,
     transaction_writer: TransactionWriter,
@@ -76,10 +143,7 @@ def run_producer(
         batch_count += 1
 
         if verbose:
-            print(
-                f"Wrote mock transaction batch {batch_count}: {scenario_set.name}",
-                flush=True,
-            )
+            print(format_scenario_record_log(batch_count, scenario_set), flush=True)
 
         if max_batches is None or batch_count < max_batches:
             time.sleep(interval_seconds)
