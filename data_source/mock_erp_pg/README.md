@@ -43,7 +43,19 @@ From this folder:
 docker compose -f docker-compose.mock_erp_pg.yml up -d --build
 ```
 
-This starts both the PostgreSQL backend and the continuous transaction producer.
+This starts the PostgreSQL backend, the continuous transaction producer, and the BI dashboard.
+
+Dashboard:
+
+```text
+http://localhost:8501
+```
+
+The dashboard refreshes SQL analytics models from:
+
+```text
+transformation/sql/analytics_models.sql
+```
 
 Run business-rule tests:
 
@@ -52,7 +64,7 @@ docker compose -f docker-compose.mock_erp_pg.yml down -v
 docker compose -f docker-compose.mock_erp_pg.yml --profile test up --abort-on-container-exit mock_erp_pg_tests
 ```
 
-Run the continuous transaction producer:
+Run the continuous transaction producer and dashboard:
 
 ```bash
 docker compose -f docker-compose.mock_erp_pg.yml up -d --build

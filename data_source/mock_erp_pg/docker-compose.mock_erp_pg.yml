@@ -57,6 +57,23 @@ services:
     networks:
       - default
 
+  analytics_dashboard:
+    build:
+      context: ../..
+      dockerfile: serving/dashboard_app/Dockerfile
+    container_name: analytics_dashboard
+    depends_on:
+      mock_erp_pg:
+        condition: service_healthy
+    environment:
+      DASHBOARD_DATABASE_URL: postgresql://mock_erp:mock_erp@mock_erp_pg:5432/mock_erp
+      ANALYTICS_SQL_PATH: /app/transformation/sql/analytics_models.sql
+      DASHBOARD_PORT: 8501
+    ports:
+      - "${DASHBOARD_EXTERNAL_PORT:-8501}:8501"
+    networks:
+      - default
+
 volumes:
   mock-erp-pg-data:
 
