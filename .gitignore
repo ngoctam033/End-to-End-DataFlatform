@@ -1,1 +1,42 @@
 .env
+
+# Docker/runtime generated files
+.env.*
+!.env.example
+*.log
+*.pid
+*.tmp
+*.temp
+.cache/
+tmp/
+temp/
+
+# Python artifacts generated inside containers
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Airflow local runtime state
+orchestration/airflow/logs/
+orchestration/airflow/plugins/__pycache__/
+orchestration/airflow/airflow.db
+orchestration/airflow/airflow-webserver.pid
+
+# dbt generated artifacts
+transformation/dbt/target/
+transformation/dbt/dbt_packages/
+transformation/dbt/logs/
+
+# Local Docker volume bind mounts / service data
+**/data/
+**/logs/
+**/tmp/
+**/.cache/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

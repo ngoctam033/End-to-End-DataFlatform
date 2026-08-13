@@ -19,25 +19,73 @@ Dự án này được thiết kế để giải quyết bài toán dữ liệu 
 Dữ liệu đi qua hệ thống theo đường ống (pipeline) dưới đây:
 
 ```mermaid
-graph LR
-    %% Định nghĩa các style
-    classDef source fill:#f9d0c4,stroke:#333,stroke-width:2px;
-    classDef ingestion fill:#f5f6ce,stroke:#333,stroke-width:2px;
-    classDef storage fill:#cce5df,stroke:#333,stroke-width:2px;
-    classDef transform fill:#d0c6e8,stroke:#333,stroke-width:2px;
-    classDef serve fill:#cce5df,stroke:#333,stroke-width:2px;
-    classDef orchestrate fill:#e2e2e2,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5;
+flowchart LR
+    %% Main data path: left to right
+    subgraph SOURCES["① Sources — Operational systems"]
+        ODOO["🛒 Odoo ERP\nSales · CRM · Inventory · Logistics"]
+        MOCK["🧪 Mock ERP PostgreSQL\nTest transactions"]
+    end
 
-    DS[1. Data Sources \n Odoo ERP]:::source --> IG[2. Ingestion \n Python/Airbyte]:::ingestion
-    IG --> ST_DL[(3. Storage \n Data Lake)]:::storage
-    ST_DL --> TR[4. Transformation \n dbt/Spark]:::transform
-    TR --> ST_DW[(3. Storage \n Data Warehouse)]:::storage
-    ST_DW --> SV[5. Serving/BI \n Metabase]:::serve
-    
-    OR((6. Orchestration \n Airflow)):::orchestrate -.- IG
-    OR -.- TR
-    OR -.- SV
+    subgraph INGEST["② Ingestion — Collect & land"]
+        PY["🐍 Custom Python\nExtract / API / batch"]
+        KAFKA["🔴 Apache Kafka\nEvent streaming / CDC"]
+        RAW[("🪣 MinIO\nRaw Data Lake")]
+    end
+
+    subgraph MODEL["③ Processing & Transform"]
+        SPARK["✨ Apache Spark\nBatch / streaming processing"]
+        DBT["⚙️ dbt\nSQL models · tests"]
+        MART[("🗄️ PostgreSQL\nData Warehouse / marts")]
+    end
+
+    subgraph SERVE["④ Serve — Consume insights"]
+        BI["📊 Metabase\nBI dashboards"]
+        POWERBI["📈 Power BI\nSelf-service analytics"]
+        USERS["👥 Business users\nExecutive · Supply Chain · Sales"]
+    end
+
+    ODOO --> PY
+    MOCK --> PY
+    PY -->|raw / immutable| RAW
+    RAW --> DBT
+    DBT -->|clean · conform · aggregate| MART
+    MART --> BI
+    MART --> POWERBI
+    BI --> USERS
+    POWERBI --> USERS
+
+    ODOO -. learning branch .-> KAFKA
+    MOCK -. learning branch .-> KAFKA
+    KAFKA -. events / CDC .-> SPARK
+    RAW -. parquet / objects .-> SPARK
+    SPARK -. curated data .-> RAW
+    SPARK -. analytical tables .-> MART
+
+    AIRFLOW{{"🎛️ Apache Airflow\nOrchestrate · schedule · monitor"}}
+    AIRFLOW -. trigger .-> PY
+    AIRFLOW -. trigger .-> SPARK
+    AIRFLOW -. trigger .-> DBT
+    AIRFLOW -. refresh / monitor .-> BI
+    AIRFLOW -. refresh / monitor .-> POWERBI
+
+    classDef source fill:#fff1e8,stroke:#e76f51,stroke-width:2px,color:#1f2937;
+    classDef ingest fill:#fff8d8,stroke:#e9c46a,stroke-width:2px,color:#1f2937;
+    classDef transform fill:#f0e9ff,stroke:#8064a2,stroke-width:2px,color:#1f2937;
+    classDef serve fill:#e5f6f2,stroke:#2a9d8f,stroke-width:2px,color:#1f2937;
+    classDef control fill:#eef2f7,stroke:#64748b,stroke-width:2px,stroke-dasharray:5 5,color:#1f2937;
+    classDef future fill:#ffffff,stroke:#94a3b8,stroke-width:2px,stroke-dasharray:4 4,color:#1f2937;
+
+    class ODOO,MOCK source;
+    class PY,RAW ingest;
+    class KAFKA future;
+    class DBT,MART transform;
+    class SPARK future;
+    class BI,USERS serve;
+    class POWERBI future;
+    class AIRFLOW control;
 ```
+
+**Cách đọc sơ đồ:** đường liền là luồng dữ liệu hiện tại; đường nét đứt là nhánh mở rộng phục vụ học tập hoặc luồng điều phối. Luồng dashboard hiện tại đọc các mart đã được pipeline tạo trong `storage/data_warehouse_pg`; dashboard không tự chạy transformation SQL. Kafka, Spark và Power BI được đặt như các node tương lai để dễ checkout sang nhánh khác khi muốn thử nghiệm, không làm thay đổi pipeline nền đang có. Các biểu tượng trong node giúp nhận diện nhanh công nghệ, còn tên công nghệ đầy đủ vẫn được giữ lại để sơ đồ không phụ thuộc vào bộ logo bên ngoài.
 
 ## 📂 Cấu Trúc Thư Mục (Codebase)
 

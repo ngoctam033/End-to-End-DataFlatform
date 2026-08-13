@@ -1,0 +1,19 @@
+services:
+  analytics_pipeline:
+    build:
+      context: ../..
+      dockerfile: ingestion/custom_python/Dockerfile
+    container_name: analytics_pipeline
+    environment:
+      PIPELINE_SOURCE_DATABASE_URL: ${PIPELINE_SOURCE_DATABASE_URL:-postgresql://mock_erp:mock_erp@mock_erp_pg:5432/mock_erp}
+      PIPELINE_WAREHOUSE_DATABASE_URL: ${PIPELINE_WAREHOUSE_DATABASE_URL:-postgresql://analytics:analytics@data_warehouse_pg:5432/analytics_warehouse}
+      PIPELINE_ANALYTICS_SQL_PATH: /app/transformation/sql/analytics_models.sql
+      PIPELINE_INTERVAL_SECONDS: ${PIPELINE_INTERVAL_SECONDS:-30}
+      PIPELINE_STARTUP_RETRY_SECONDS: ${PIPELINE_STARTUP_RETRY_SECONDS:-5}
+    networks:
+      - default
+
+networks:
+  default:
+    name: end2end_data_network
+    external: true

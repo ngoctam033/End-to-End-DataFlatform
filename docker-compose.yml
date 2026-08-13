@@ -1,10 +1,13 @@
 include:
   - path: data_source/mock_erp_pg/docker-compose.mock_erp_pg.yml
-  - path: data_source/odoo/docker-compose.odoo.yml
-  - path: orchestration/airflow/docker-compose.airflow.yaml
-  - path: storage/minio/docker-compose.minio.yaml
+  - path: storage/data_warehouse_pg/docker-compose.data_warehouse_pg.yml
+  - path: ingestion/custom_python/docker-compose.custom_python.yml
+  - path: serving/dashboard_app/docker-compose.dashboard_app.yml
+  # - path: data_source/odoo/docker-compose.odoo.yml
+  # - path: orchestration/airflow/docker-compose.airflow.yaml
+  # - path: storage/minio/docker-compose.minio.yaml
 
 networks:
   default:
     name: end2end_data_network
-    driver: bridge
+    external: true

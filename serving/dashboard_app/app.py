@@ -16,14 +16,13 @@ from fastapi.staticfiles import StaticFiles
 
 APP_DIR = Path(__file__).resolve().parent
 STATIC_DIR = APP_DIR / "static"
-DEFAULT_SQL_PATH = Path("transformation/sql/analytics_models.sql")
-DEFAULT_DATABASE_URL = "postgresql://mock_erp:mock_erp@localhost:55432/mock_erp"
+DEFAULT_DATABASE_URL = "postgresql://analytics:analytics@localhost:55433/analytics_warehouse"
 
 DATABASE_URL = os.getenv("DASHBOARD_DATABASE_URL", DEFAULT_DATABASE_URL)
-ANALYTICS_SQL_PATH = Path(os.getenv("ANALYTICS_SQL_PATH", str(DEFAULT_SQL_PATH)))
 
 app = FastAPI(title="ERP Data Platform Dashboard")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
 
 
 def json_value(value: Any) -> Any:
@@ -55,18 +54,26 @@ def fetch_one(cursor, sql: str) -> dict[str, Any]:
     return rows[0] if rows else {}
 
 
-def refresh_analytics_models() -> None:
-    sql = ANALYTICS_SQL_PATH.read_text(encoding="utf-8")
-    with connection_cursor() as (connection, cursor):
-        cursor.execute(sql)
-        connection.commit()
-
-
 def load_dashboard_payload() -> dict[str, Any]:
-    refresh_analytics_models()
-
     with connection_cursor() as (_, cursor):
+        cursor.execute("SELECT to_regclass('pipeline.pipeline_runs') IS NOT NULL")
+        pipeline_table_exists = cursor.fetchone()[0]
+        pipeline = (
+            fetch_one(
+                cursor,
+                """
+                SELECT pipeline_name, status, source_system, completed_at, copied_tables
+                FROM pipeline.pipeline_runs
+                ORDER BY completed_at DESC
+                LIMIT 1
+                """,
+            )
+            if pipeline_table_exists
+            else {}
+        )
         return {
+            "data_source": "analytics_warehouse",
+            "pipeline": pipeline,
             "kpis": fetch_one(cursor, "SELECT * FROM analytics.mart_dashboard_kpis"),
             "daily_sales": fetch_all(
                 cursor,
@@ -135,12 +142,6 @@ def load_dashboard_payload() -> dict[str, Any]:
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
-
-
-@app.post("/api/refresh")
-def refresh() -> dict[str, str]:
-    refresh_analytics_models()
-    return {"status": "ok"}
 
 
 @app.get("/api/dashboard")

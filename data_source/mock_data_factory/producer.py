@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 import time
+import traceback
 
 from data_source.mock_data_factory.adapters.mock_erp_pg import MockErpPgTransactionWriter
 from data_source.mock_data_factory.interfaces import (
@@ -138,12 +140,22 @@ def run_producer(
     batch_count = 0
 
     while max_batches is None or batch_count < max_batches:
-        scenario_set = scenario_provider.next_batch()
-        transaction_writer.write(scenario_set)
         batch_count += 1
 
-        if verbose:
-            print(format_scenario_record_log(batch_count, scenario_set), flush=True)
+        try:
+            scenario_set = scenario_provider.next_batch()
+            transaction_writer.write(scenario_set)
+        except Exception as error:
+            print(
+                f"mock_transaction_batch={batch_count} status=skipped "
+                f"error={type(error).__name__}: {error}",
+                file=sys.stderr,
+                flush=True,
+            )
+            traceback.print_exc()
+        else:
+            if verbose:
+                print(format_scenario_record_log(batch_count, scenario_set), flush=True)
 
         if max_batches is None or batch_count < max_batches:
             time.sleep(interval_seconds)

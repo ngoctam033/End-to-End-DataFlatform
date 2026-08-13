@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -25,6 +26,19 @@ class FakeWriter(TransactionWriter):
         self.written_batches: list[BusinessScenarioSet] = []
 
     def write(self, scenario_set: BusinessScenarioSet) -> None:
+        self.written_batches.append(scenario_set)
+
+
+class FailingOnceWriter(TransactionWriter):
+    def __init__(self) -> None:
+        self.written_batches: list[BusinessScenarioSet] = []
+        self._failed = False
+
+    def write(self, scenario_set: BusinessScenarioSet) -> None:
+        if not self._failed:
+            self._failed = True
+            raise RuntimeError("transient write failure")
+
         self.written_batches.append(scenario_set)
 
 
@@ -95,6 +109,25 @@ class MockDataFactoryTest(unittest.TestCase):
             writer.written_batches[2].sales_orders[0].order_date.day,
             3,
         )
+
+    def test_producer_skips_failed_batches_and_continues(self) -> None:
+        provider = OmnichannelFmcgScenarioProvider(days_per_batch=1)
+        writer = FailingOnceWriter()
+
+        with patch("sys.stderr", new_callable=io.StringIO) as stderr:
+            batch_count = run_producer(
+                scenario_provider=provider,
+                transaction_writer=writer,
+                interval_seconds=0,
+                max_batches=2,
+                verbose=False,
+            )
+
+        self.assertEqual(batch_count, 2)
+        self.assertEqual(len(writer.written_batches), 1)
+        self.assertEqual(writer.written_batches[0].sales_orders[0].order_date.day, 2)
+        self.assertIn("status=skipped", stderr.getvalue())
+        self.assertIn("transient write failure", stderr.getvalue())
 
     def test_producer_can_start_without_cli_arguments(self) -> None:
         with patch("sys.argv", ["producer.py"]):

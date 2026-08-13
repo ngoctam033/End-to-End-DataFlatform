@@ -6,7 +6,10 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 ANALYTICS_SQL = PROJECT_ROOT / "transformation/sql/analytics_models.sql"
-FRONTEND_HTML = PROJECT_ROOT / "serving/dashboard_app/static/index.html"
+FRONTEND_SOURCE = PROJECT_ROOT / "serving/dashboard_app/frontend/src/main.jsx"
+FRONTEND_CSS = PROJECT_ROOT / "serving/dashboard_app/frontend/src/styles.css"
+FRONTEND_PACKAGE = PROJECT_ROOT / "serving/dashboard_app/frontend/package.json"
+FRONTEND_COMPONENTS = PROJECT_ROOT / "serving/dashboard_app/frontend/src/components"
 
 
 class DashboardArtifactsTest(unittest.TestCase):
@@ -32,14 +35,38 @@ class DashboardArtifactsTest(unittest.TestCase):
             self.assertIn(model, sql)
 
     def test_frontend_contains_business_dashboard_sections(self) -> None:
-        html = FRONTEND_HTML.read_text(encoding="utf-8")
+        source = FRONTEND_SOURCE.read_text(encoding="utf-8")
 
-        self.assertIn("Daily Revenue Trend", html)
-        self.assertIn("Revenue by Channel", html)
-        self.assertIn("Top Products", html)
-        self.assertIn("Inventory Health", html)
-        self.assertIn("Logistics Performance", html)
-        self.assertIn("Customer RFM", html)
+        self.assertIn("Daily Revenue Trend", source)
+        self.assertIn("Revenue by Channel", source)
+        self.assertIn("Top Products", source)
+        self.assertIn("Inventory Health", source)
+        self.assertIn("Logistics Performance", source)
+        self.assertIn("Customer RFM", source)
+
+    def test_frontend_uses_full_screen_responsive_layout(self) -> None:
+        table_component = (FRONTEND_COMPONENTS / "DataTable.jsx").read_text(encoding="utf-8")
+        css = FRONTEND_CSS.read_text(encoding="utf-8")
+
+        self.assertIn('className="table-scroll"', table_component)
+        self.assertIn("min-height: 100vh", css)
+        self.assertIn("width: 100%", css)
+        self.assertIn("repeat(auto-fit, minmax(190px, 1fr))", css)
+        self.assertIn("@media (max-width: 760px)", css)
+        self.assertNotIn("max-width: 1440px", css)
+
+    def test_frontend_is_react_vite_app(self) -> None:
+        package_json = FRONTEND_PACKAGE.read_text(encoding="utf-8")
+        source = FRONTEND_SOURCE.read_text(encoding="utf-8")
+        component_files = {path.name for path in FRONTEND_COMPONENTS.glob("*.jsx")}
+
+        self.assertIn('"react"', package_json)
+        self.assertIn('"vite"', package_json)
+        self.assertIn("createRoot", source)
+        self.assertIn("KpiCard.jsx", component_files)
+        self.assertIn("ChartPanel.jsx", component_files)
+        self.assertIn("DataTable.jsx", component_files)
+        self.assertIn("Panel.jsx", component_files)
 
 
 if __name__ == "__main__":

@@ -56,7 +56,6 @@ docker compose -f docker-compose.mock_erp_pg.yml up -d mock_erp_pg
 Start the mock ERP backend and the continuous producer:
 
 ```bash
-docker network inspect end2end_data_network >/dev/null 2>&1 || docker network create end2end_data_network
 cd data_source/mock_erp_pg
 docker compose -f docker-compose.mock_erp_pg.yml up -d --build
 ```
