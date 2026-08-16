@@ -1,3 +1,20 @@
+---
+id: BL-001
+status: backlog
+priority: P2
+priority_rank: 250
+category: business
+owner: unassigned
+created_at: 2026-08-11
+updated_at: 2026-08-13
+progress: 0
+effort: M
+value: medium
+dependencies: []
+tags: [target, budget, analytics]
+target_release: null
+---
+
 # Backlog 1: Target/Budget Data
 
 Ngay ghi nhan: 11/08/2026

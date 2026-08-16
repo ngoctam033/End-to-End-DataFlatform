@@ -1,3 +1,20 @@
+---
+id: BL-005
+status: backlog
+priority: P2
+priority_rank: 230
+category: architecture
+owner: unassigned
+created_at: 2026-08-11
+updated_at: 2026-08-13
+progress: 0
+effort: L
+value: medium
+dependencies: [BL-007]
+tags: [data-generation, volume, performance]
+target_release: null
+---
+
 # Backlog 5: Expand Transaction Volume
 
 Ngay ghi nhan: 11/08/2026

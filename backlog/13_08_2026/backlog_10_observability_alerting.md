@@ -1,3 +1,20 @@
+---
+id: BL-010
+status: backlog
+priority: P1
+priority_rank: 80
+category: reliability
+owner: unassigned
+created_at: 2026-08-13
+updated_at: 2026-08-13
+progress: 0
+effort: M
+value: high
+dependencies: [BL-008, BL-009]
+tags: [logging, monitoring, alerting, sla]
+target_release: null
+---
+
 # Backlog 10: Logging, Monitoring and Alerting
 
 Ngay ghi nhan: 13/08/2026

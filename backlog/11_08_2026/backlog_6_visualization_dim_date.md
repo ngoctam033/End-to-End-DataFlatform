@@ -1,3 +1,20 @@
+---
+id: BL-006
+status: backlog
+priority: P3
+priority_rank: 270
+category: analytics
+owner: unassigned
+created_at: 2026-08-11
+updated_at: 2026-08-13
+progress: 0
+effort: S
+value: low
+dependencies: []
+tags: [visualization, dim-date, time]
+target_release: null
+---
+
 # Backlog 6: Visualization Dim Date
 
 Ngay ghi nhan: 11/08/2026

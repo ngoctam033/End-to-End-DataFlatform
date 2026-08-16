@@ -1,3 +1,20 @@
+---
+id: BL-011
+status: backlog
+priority: P1
+priority_rank: 30
+category: platform
+owner: unassigned
+created_at: 2026-08-13
+updated_at: 2026-08-13
+progress: 0
+effort: L
+value: high
+dependencies: [BL-016]
+tags: [minio, raw, staging, parquet, replay]
+target_release: null
+---
+
 # Backlog 11: Raw/Staging Layer on MinIO
 
 Ngay ghi nhan: 13/08/2026

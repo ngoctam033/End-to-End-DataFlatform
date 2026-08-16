@@ -1,3 +1,20 @@
+---
+id: BL-013
+status: backlog
+priority: P2
+priority_rank: 190
+category: architecture
+owner: unassigned
+created_at: 2026-08-13
+updated_at: 2026-08-13
+progress: 0
+effort: L
+value: medium
+dependencies: [BL-011, BL-012]
+tags: [spark, batch, streaming, performance]
+target_release: null
+---
+
 # Backlog 13: Spark Processing
 
 Ngay ghi nhan: 13/08/2026

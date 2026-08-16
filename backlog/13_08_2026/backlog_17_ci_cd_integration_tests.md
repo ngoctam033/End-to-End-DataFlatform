@@ -1,3 +1,20 @@
+---
+id: BL-017
+status: backlog
+priority: P1
+priority_rank: 90
+category: reliability
+owner: unassigned
+created_at: 2026-08-13
+updated_at: 2026-08-13
+progress: 0
+effort: L
+value: high
+dependencies: [BL-009, BL-014]
+tags: [ci-cd, integration-test, lint, validation]
+target_release: null
+---
+
 # Backlog 17: CI/CD and Integration Tests
 
 Ngay ghi nhan: 13/08/2026

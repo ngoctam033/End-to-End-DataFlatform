@@ -1,3 +1,20 @@
+---
+id: BL-004
+status: backlog
+priority: P2
+priority_rank: 200
+category: architecture
+owner: unassigned
+created_at: 2026-08-11
+updated_at: 2026-08-13
+progress: 0
+effort: L
+value: medium
+dependencies: [BL-012, BL-013]
+tags: [kafka, spark, learning, branch]
+target_release: null
+---
+
 # Backlog 4: Kafka/Spark Learning Branch
 
 Ngay ghi nhan: 11/08/2026

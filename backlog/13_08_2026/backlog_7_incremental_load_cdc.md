@@ -1,3 +1,20 @@
+---
+id: BL-007
+status: backlog
+priority: P1
+priority_rank: 40
+category: platform
+owner: unassigned
+created_at: 2026-08-13
+updated_at: 2026-08-13
+progress: 0
+effort: L
+value: high
+dependencies: [BL-016]
+tags: [incremental, cdc, watermark, idempotency]
+target_release: null
+---
+
 # Backlog 7: Incremental Load/CDC
 
 Ngay ghi nhan: 13/08/2026

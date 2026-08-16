@@ -1,3 +1,20 @@
+---
+id: BL-018
+status: backlog
+priority: P1
+priority_rank: 100
+category: reliability
+owner: unassigned
+created_at: 2026-08-13
+updated_at: 2026-08-13
+progress: 0
+effort: L
+value: medium
+dependencies: [BL-014]
+tags: [lineage, metadata, freshness, ownership]
+target_release: null
+---
+
 # Backlog 18: Data Lineage and Metadata
 
 Ngay ghi nhan: 13/08/2026

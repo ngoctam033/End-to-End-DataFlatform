@@ -1,3 +1,20 @@
+---
+id: BL-003
+status: backlog
+priority: P2
+priority_rank: 220
+category: analytics
+owner: unassigned
+created_at: 2026-08-11
+updated_at: 2026-08-13
+progress: 0
+effort: M
+value: medium
+dependencies: [BL-015]
+tags: [master-data, scd, testing]
+target_release: null
+---
+
 # Backlog 3: Master Data Changes/SCD Scenario
 
 Ngay ghi nhan: 11/08/2026

@@ -1,3 +1,20 @@
+---
+id: BL-002
+status: backlog
+priority: P2
+priority_rank: 260
+category: business
+owner: unassigned
+created_at: 2026-08-11
+updated_at: 2026-08-13
+progress: 0
+effort: L
+value: medium
+dependencies: [BL-007]
+tags: [purchase, supplier, inventory]
+target_release: null
+---
+
 # Backlog 2: Purchase/Supplier Data
 
 Ngay ghi nhan: 11/08/2026

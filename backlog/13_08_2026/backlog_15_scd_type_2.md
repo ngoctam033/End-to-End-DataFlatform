@@ -1,3 +1,20 @@
+---
+id: BL-015
+status: backlog
+priority: P2
+priority_rank: 210
+category: analytics
+owner: unassigned
+created_at: 2026-08-13
+updated_at: 2026-08-13
+progress: 0
+effort: M
+value: medium
+dependencies: [BL-014]
+tags: [scd, type-2, master-data, history]
+target_release: null
+---
+
 # Backlog 15: Slowly Changing Dimension Type 2
 
 Ngay ghi nhan: 13/08/2026
