@@ -14,11 +14,15 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+# Configuration guide: docs/operations/secrets_management.md
+from shared.settings import settings
+
 APP_DIR = Path(__file__).resolve().parent
 STATIC_DIR = APP_DIR / "static"
-DEFAULT_DATABASE_URL = "postgresql://analytics:analytics@localhost:55433/analytics_warehouse"
 
-DATABASE_URL = os.getenv("DASHBOARD_DATABASE_URL", DEFAULT_DATABASE_URL)
+def get_dashboard_database_url() -> str:
+    return settings.dashboard_db.get_connection_url()
+
 
 app = FastAPI(title="ERP Data Platform Dashboard")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -35,7 +39,7 @@ def json_value(value: Any) -> Any:
 
 @contextmanager
 def connection_cursor():
-    with psycopg.connect(DATABASE_URL) as connection:
+    with psycopg.connect(get_dashboard_database_url()) as connection:
         with connection.cursor() as cursor:
             yield connection, cursor
 
@@ -152,8 +156,8 @@ def dashboard() -> dict[str, Any]:
 def main() -> None:
     import uvicorn
 
-    host = os.getenv("DASHBOARD_HOST", "0.0.0.0")
-    port = int(os.getenv("DASHBOARD_PORT", "8501"))
+    host = settings.dashboard_server.host
+    port = settings.dashboard_server.port
     uvicorn.run(app, host=host, port=port)
 
 

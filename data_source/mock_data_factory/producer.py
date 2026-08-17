@@ -18,10 +18,16 @@ from data_source.mock_data_factory.scenarios.omnichannel_fmcg import (
 )
 from data_source.mock_data_factory.models import BusinessScenarioSet
 
+# Configuration guide: docs/operations/secrets_management.md
+from shared.settings import settings
+
 DEFAULT_TARGET = "mock_erp_pg"
-DEFAULT_DATABASE_URL = "postgresql://mock_erp:mock_erp@localhost:55432/mock_erp"
 DEFAULT_INTERVAL_SECONDS = 10
 DEFAULT_DAYS_PER_BATCH = 1
+
+
+def get_producer_database_url() -> str:
+    return settings.mock_erp_db.get_connection_url()
 
 
 def parse_args() -> argparse.Namespace:
@@ -29,28 +35,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--target",
         choices=("mock_erp_pg",),
-        default=os.getenv("MOCK_DATA_PRODUCER_TARGET", DEFAULT_TARGET),
+        default=settings.producer.target,
     )
     parser.add_argument(
         "--database-url",
-        default=os.getenv("MOCK_DATA_PRODUCER_DATABASE_URL", DEFAULT_DATABASE_URL),
+        default=settings.producer.database_url,
+        help="Database connection URL. If omitted, constructed from environment variables.",
     )
     parser.add_argument(
         "--interval-seconds",
         type=float,
-        default=float(
-            os.getenv("MOCK_DATA_PRODUCER_INTERVAL_SECONDS", DEFAULT_INTERVAL_SECONDS)
-        ),
+        default=settings.producer.interval_seconds,
     )
     parser.add_argument(
         "--days-per-batch",
         type=int,
-        default=int(os.getenv("MOCK_DATA_PRODUCER_DAYS_PER_BATCH", DEFAULT_DAYS_PER_BATCH)),
+        default=settings.producer.days_per_batch,
     )
     parser.add_argument(
         "--max-batches",
         type=int,
-        default=_optional_int(os.getenv("MOCK_DATA_PRODUCER_MAX_BATCHES")),
+        default=settings.producer.max_batches,
     )
     return parser.parse_args()
 
@@ -167,7 +172,8 @@ def main() -> None:
     args = parse_args()
 
     if args.target == "mock_erp_pg":
-        writer = MockErpPgTransactionWriter(args.database_url)
+        db_url = args.database_url or get_producer_database_url()
+        writer = MockErpPgTransactionWriter(db_url)
     else:
         raise ValueError(f"Unsupported target: {args.target}")
 

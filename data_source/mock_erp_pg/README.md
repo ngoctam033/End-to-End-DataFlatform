@@ -40,7 +40,9 @@ Later, this source can be replaced by Odoo or another ERP backend while keeping 
 From this folder:
 
 ```bash
-docker compose -f docker-compose.mock_erp_pg.yml up -d --build
+cp ../../.env.example ../../.env
+# Replace every change-me value in ../../.env before continuing.
+docker compose --env-file ../../.env -f docker-compose.mock_erp_pg.yml up -d --build
 ```
 
 This starts the PostgreSQL backend and the continuous transaction producer.
@@ -48,26 +50,29 @@ This starts the PostgreSQL backend and the continuous transaction producer.
 The BI dashboard is a separate serving service:
 
 ```bash
-docker compose -f ../../serving/dashboard_app/docker-compose.dashboard_app.yml up -d --build
+docker compose --env-file ../../.env -f ../../serving/dashboard_app/docker-compose.dashboard_app.yml up -d --build
 ```
 
 Run business-rule tests:
 
 ```bash
-docker compose -f docker-compose.mock_erp_pg.yml down -v
-docker compose -f docker-compose.mock_erp_pg.yml --profile test up --abort-on-container-exit mock_erp_pg_tests
+docker compose --env-file ../../.env -f docker-compose.mock_erp_pg.yml down -v
+docker compose --env-file ../../.env -f docker-compose.mock_erp_pg.yml --profile test up --abort-on-container-exit mock_erp_pg_tests
 ```
 
 Run the continuous transaction producer:
 
 ```bash
-docker compose -f docker-compose.mock_erp_pg.yml up -d --build
+docker compose --env-file ../../.env -f docker-compose.mock_erp_pg.yml up -d --build
 ```
 
 Run the producer locally with one Python file:
 
 ```bash
 cd ../..
+set -a
+. ./.env
+set +a
 python data_source/mock_data_factory/run_mock_data_producer.py
 ```
 
@@ -76,15 +81,16 @@ Optional producer tuning:
 ```bash
 MOCK_DATA_PRODUCER_INTERVAL_SECONDS=5 \
 MOCK_DATA_PRODUCER_DAYS_PER_BATCH=1 \
-docker compose -f docker-compose.mock_erp_pg.yml up -d --build
+docker compose --env-file ../../.env -f docker-compose.mock_erp_pg.yml up -d --build
 ```
 
-Connection:
+Database connection values are read from the local `.env` file:
 
 ```text
-host: localhost
-port: 55432
-database: mock_erp
-user: mock_erp
-password: mock_erp
+MOCK_ERP_POSTGRES_USER
+MOCK_ERP_POSTGRES_PASSWORD
+MOCK_ERP_POSTGRES_DB
+MOCK_ERP_PG_EXTERNAL_PORT
 ```
+
+Create `.env` from the repository template before starting the service, replace every `change-me` value, and never commit the resulting `.env` file.

@@ -7,18 +7,19 @@ from unittest.mock import patch
 
 from data_source.mock_data_factory.adapters.mock_erp_pg import (
     MockErpPgDockerPsqlTransactionWriter,
+    render_mock_erp_pg_sql,
 )
-from data_source.mock_data_factory.adapters.mock_erp_pg import render_mock_erp_pg_sql
 from data_source.mock_data_factory.interfaces import TransactionWriter
 from data_source.mock_data_factory.models import BusinessScenarioSet
-from data_source.mock_data_factory.producer import DEFAULT_DATABASE_URL
-from data_source.mock_data_factory.producer import format_scenario_record_log
-from data_source.mock_data_factory.producer import parse_args
-from data_source.mock_data_factory.producer import run_producer
+from data_source.mock_data_factory.producer import (
+    format_scenario_record_log,
+    parse_args,
+    run_producer,
+)
 from data_source.mock_data_factory.scenarios.omnichannel_fmcg import (
     OmnichannelFmcgScenarioProvider,
+    build_scenario_set,
 )
-from data_source.mock_data_factory.scenarios.omnichannel_fmcg import build_scenario_set
 
 
 class FakeWriter(TransactionWriter):
@@ -134,7 +135,7 @@ class MockDataFactoryTest(unittest.TestCase):
             args = parse_args()
 
         self.assertEqual(args.target, "mock_erp_pg")
-        self.assertEqual(args.database_url, DEFAULT_DATABASE_URL)
+        self.assertIsNone(args.database_url)
         self.assertEqual(args.interval_seconds, 10)
         self.assertEqual(args.days_per_batch, 1)
         self.assertIsNone(args.max_batches)
@@ -158,20 +159,28 @@ class MockDataFactoryTest(unittest.TestCase):
         self.assertEqual(args.max_batches, 4)
 
     def test_docker_psql_writer_executes_payload_in_mock_erp_container(self) -> None:
-        writer = MockErpPgDockerPsqlTransactionWriter(Path("/tmp/mock-compose.yml"))
+        with patch.dict(
+            "os.environ",
+            {
+                "MOCK_ERP_POSTGRES_USER": "mock_erp",
+                "MOCK_ERP_POSTGRES_PASSWORD": "mock_erp_pass",
+                "MOCK_ERP_POSTGRES_DB": "mock_erp",
+            },
+        ):
+            writer = MockErpPgDockerPsqlTransactionWriter(Path("/tmp/mock-compose.yml"))
 
-        with patch(
-            "data_source.mock_data_factory.adapters.mock_erp_pg.subprocess.run"
-        ) as run_mock:
-            writer.write(build_scenario_set())
+            with patch(
+                "data_source.mock_data_factory.adapters.mock_erp_pg.subprocess.run"
+            ) as run_mock:
+                writer.write(build_scenario_set())
 
-        run_mock.assert_called_once()
-        command = run_mock.call_args.args[0]
-        self.assertEqual(command[:5], ["docker", "compose", "-f", "/tmp/mock-compose.yml", "exec"])
-        self.assertIn("mock_erp_pg", command)
-        self.assertIn("psql", command)
-        self.assertIn("erp_sales.create_sales_order", run_mock.call_args.kwargs["input"])
-        self.assertTrue(run_mock.call_args.kwargs["check"])
+            run_mock.assert_called_once()
+            command = run_mock.call_args.args[0]
+            self.assertEqual(command[:5], ["docker", "compose", "-f", "/tmp/mock-compose.yml", "exec"])
+            self.assertIn("mock_erp_pg", command)
+            self.assertIn("psql", command)
+            self.assertIn("erp_sales.create_sales_order", run_mock.call_args.kwargs["input"])
+            self.assertTrue(run_mock.call_args.kwargs["check"])
 
     def test_producer_log_contains_record_level_values(self) -> None:
         log_text = format_scenario_record_log(1, build_scenario_set())

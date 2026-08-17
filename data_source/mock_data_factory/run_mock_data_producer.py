@@ -13,22 +13,14 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from data_source.mock_data_factory.adapters.mock_erp_pg import (
     MockErpPgDockerPsqlTransactionWriter,
 )
-from data_source.mock_data_factory.producer import (
-    DEFAULT_DAYS_PER_BATCH,
-    DEFAULT_INTERVAL_SECONDS,
-    run_producer,
-)
+from data_source.mock_data_factory.producer import run_producer
 from data_source.mock_data_factory.scenarios.omnichannel_fmcg import (
     OmnichannelFmcgScenarioProvider,
 )
+# Configuration guide: docs/operations/secrets_management.md
+from shared.settings import settings
 
 COMPOSE_FILE = PROJECT_ROOT / "data_source/mock_erp_pg/docker-compose.mock_erp_pg.yml"
-
-
-def optional_int(value: str | None) -> int | None:
-    if value is None or value == "":
-        return None
-    return int(value)
 
 
 def ensure_mock_erp_pg_is_running() -> None:
@@ -60,21 +52,13 @@ def ensure_mock_erp_pg_is_running() -> None:
 
 
 def main() -> None:
-    interval_seconds = float(
-        os.getenv("MOCK_DATA_PRODUCER_INTERVAL_SECONDS", DEFAULT_INTERVAL_SECONDS)
-    )
-    days_per_batch = int(
-        os.getenv("MOCK_DATA_PRODUCER_DAYS_PER_BATCH", DEFAULT_DAYS_PER_BATCH)
-    )
-    max_batches = optional_int(os.getenv("MOCK_DATA_PRODUCER_MAX_BATCHES"))
-
     ensure_mock_erp_pg_is_running()
 
     run_producer(
-        scenario_provider=OmnichannelFmcgScenarioProvider(days_per_batch=days_per_batch),
+        scenario_provider=OmnichannelFmcgScenarioProvider(days_per_batch=settings.producer.days_per_batch),
         transaction_writer=MockErpPgDockerPsqlTransactionWriter(COMPOSE_FILE),
-        interval_seconds=interval_seconds,
-        max_batches=max_batches,
+        interval_seconds=settings.producer.interval_seconds,
+        max_batches=settings.producer.max_batches,
     )
 
 

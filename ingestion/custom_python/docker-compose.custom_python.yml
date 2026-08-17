@@ -5,8 +5,8 @@ services:
       dockerfile: ingestion/custom_python/Dockerfile
     container_name: analytics_pipeline
     environment:
-      PIPELINE_SOURCE_DATABASE_URL: ${PIPELINE_SOURCE_DATABASE_URL:-postgresql://mock_erp:mock_erp@mock_erp_pg:5432/mock_erp}
-      PIPELINE_WAREHOUSE_DATABASE_URL: ${PIPELINE_WAREHOUSE_DATABASE_URL:-postgresql://analytics:analytics@data_warehouse_pg:5432/analytics_warehouse}
+      PIPELINE_SOURCE_DATABASE_URL: ${PIPELINE_SOURCE_DATABASE_URL:-postgresql://${MOCK_ERP_POSTGRES_USER}:${MOCK_ERP_POSTGRES_PASSWORD}@mock_erp_pg:5432/${MOCK_ERP_POSTGRES_DB}}
+      PIPELINE_WAREHOUSE_DATABASE_URL: ${PIPELINE_WAREHOUSE_DATABASE_URL:-postgresql://${WAREHOUSE_POSTGRES_USER}:${WAREHOUSE_POSTGRES_PASSWORD}@data_warehouse_pg:5432/${WAREHOUSE_POSTGRES_DB}}
       PIPELINE_ANALYTICS_SQL_PATH: /app/transformation/sql/analytics_models.sql
       PIPELINE_INTERVAL_SECONDS: ${PIPELINE_INTERVAL_SECONDS:-30}
       PIPELINE_STARTUP_RETRY_SECONDS: ${PIPELINE_STARTUP_RETRY_SECONDS:-5}

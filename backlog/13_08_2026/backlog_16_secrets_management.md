@@ -1,13 +1,13 @@
 ---
 id: BL-016
-status: backlog
+status: done
 priority: P0
 priority_rank: 10
 category: platform
 owner: unassigned
 created_at: 2026-08-13
-updated_at: 2026-08-13
-progress: 0
+updated_at: 2026-08-16
+progress: 100
 effort: S
 value: high
 dependencies: []
@@ -18,7 +18,7 @@ target_release: null
 # Backlog 16: Secrets Management
 
 Ngay ghi nhan: 13/08/2026
-Trang thai: backlog, chua trien khai
+Trang thai: done, da hoan thanh
 
 ## Muc tieu
 

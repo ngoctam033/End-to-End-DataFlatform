@@ -17,19 +17,21 @@ import psycopg
 from psycopg import sql
 
 
-SOURCE_DATABASE_URL = os.getenv(
-    "PIPELINE_SOURCE_DATABASE_URL",
-    "postgresql://mock_erp:mock_erp@localhost:55432/mock_erp",
-)
-WAREHOUSE_DATABASE_URL = os.getenv(
-    "PIPELINE_WAREHOUSE_DATABASE_URL",
-    "postgresql://analytics:analytics@localhost:55433/analytics_warehouse",
-)
-ANALYTICS_SQL_PATH = Path(
-    os.getenv("PIPELINE_ANALYTICS_SQL_PATH", "transformation/sql/analytics_models.sql")
-)
-PIPELINE_INTERVAL_SECONDS = int(os.getenv("PIPELINE_INTERVAL_SECONDS", "30"))
-STARTUP_RETRY_SECONDS = int(os.getenv("PIPELINE_STARTUP_RETRY_SECONDS", "5"))
+# Configuration guide: docs/operations/secrets_management.md
+from shared.settings import settings
+
+
+def get_source_database_url() -> str:
+    return settings.mock_erp_db.get_connection_url()
+
+
+def get_warehouse_database_url() -> str:
+    return settings.warehouse_db.get_connection_url()
+
+
+ANALYTICS_SQL_PATH = settings.pipeline.analytics_sql_path
+PIPELINE_INTERVAL_SECONDS = settings.pipeline.interval_seconds
+STARTUP_RETRY_SECONDS = settings.pipeline.startup_retry_seconds
 SOURCE_SCHEMAS = ("erp_core", "erp_sales", "erp_inventory", "erp_logistics", "erp_finance")
 
 
@@ -140,8 +142,10 @@ def record_pipeline_run(warehouse_connection, copied_tables: int) -> None:
 
 
 def run_once() -> int:
-    with closing(psycopg.connect(SOURCE_DATABASE_URL)) as source_connection:
-        with closing(psycopg.connect(WAREHOUSE_DATABASE_URL)) as warehouse_connection:
+    source_url = get_source_database_url()
+    warehouse_url = get_warehouse_database_url()
+    with closing(psycopg.connect(source_url)) as source_connection:
+        with closing(psycopg.connect(warehouse_url)) as warehouse_connection:
             with source_connection.cursor() as cursor:
                 tables = source_tables(cursor)
             copied_tables = 0

@@ -5,7 +5,7 @@ services:
       dockerfile: serving/dashboard_app/Dockerfile
     container_name: analytics_dashboard
     environment:
-      DASHBOARD_DATABASE_URL: ${DASHBOARD_DATABASE_URL:-postgresql://analytics:analytics@data_warehouse_pg:5432/analytics_warehouse}
+      DASHBOARD_DATABASE_URL: ${DASHBOARD_DATABASE_URL:-postgresql://${WAREHOUSE_POSTGRES_USER}:${WAREHOUSE_POSTGRES_PASSWORD}@data_warehouse_pg:5432/${WAREHOUSE_POSTGRES_DB}}
       DASHBOARD_PORT: 8501
     ports:
       - "${DASHBOARD_EXTERNAL_PORT:-8501}:8501"

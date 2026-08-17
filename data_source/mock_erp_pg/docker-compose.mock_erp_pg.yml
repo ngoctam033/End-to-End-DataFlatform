@@ -3,16 +3,16 @@ services:
     image: postgres:16
     container_name: mock_erp_pg
     environment:
-      POSTGRES_DB: mock_erp
-      POSTGRES_USER: mock_erp
-      POSTGRES_PASSWORD: mock_erp
+      POSTGRES_DB: ${MOCK_ERP_POSTGRES_DB:?MOCK_ERP_POSTGRES_DB is required}
+      POSTGRES_USER: ${MOCK_ERP_POSTGRES_USER:?MOCK_ERP_POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${MOCK_ERP_POSTGRES_PASSWORD:?MOCK_ERP_POSTGRES_PASSWORD is required}
     ports:
       - "${MOCK_ERP_PG_EXTERNAL_PORT:-55432}:5432"
     volumes:
       - mock-erp-pg-data:/var/lib/postgresql/data
       - ./init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mock_erp -d mock_erp"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -28,14 +28,14 @@ services:
       mock_erp_pg:
         condition: service_healthy
     environment:
-      PGPASSWORD: mock_erp
+      PGPASSWORD: ${MOCK_ERP_POSTGRES_PASSWORD:?MOCK_ERP_POSTGRES_PASSWORD is required}
     volumes:
       - ./tests:/tests:ro
     command: >
       psql
       --host=mock_erp_pg
-      --username=mock_erp
-      --dbname=mock_erp
+      --username=${MOCK_ERP_POSTGRES_USER}
+      --dbname=${MOCK_ERP_POSTGRES_DB}
       --set=ON_ERROR_STOP=1
       --file=/tests/business_rules.sql
     networks:
@@ -50,7 +50,7 @@ services:
       mock_erp_pg:
         condition: service_healthy
     environment:
-      MOCK_DATA_PRODUCER_DATABASE_URL: postgresql://mock_erp:mock_erp@mock_erp_pg:5432/mock_erp
+      MOCK_DATA_PRODUCER_DATABASE_URL: ${MOCK_DATA_PRODUCER_DATABASE_URL:-postgresql://${MOCK_ERP_POSTGRES_USER}:${MOCK_ERP_POSTGRES_PASSWORD}@mock_erp_pg:5432/${MOCK_ERP_POSTGRES_DB}}
       MOCK_DATA_PRODUCER_INTERVAL_SECONDS: ${MOCK_DATA_PRODUCER_INTERVAL_SECONDS:-10}
       MOCK_DATA_PRODUCER_DAYS_PER_BATCH: ${MOCK_DATA_PRODUCER_DAYS_PER_BATCH:-1}
       MOCK_DATA_PRODUCER_MAX_BATCHES: ${MOCK_DATA_PRODUCER_MAX_BATCHES:-}

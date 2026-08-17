@@ -16,6 +16,7 @@ WORKDIR /app
 COPY serving/dashboard_app/requirements.txt /tmp/dashboard_requirements.txt
 RUN pip install --no-cache-dir -r /tmp/dashboard_requirements.txt
 
+COPY shared /app/shared
 COPY serving/dashboard_app /app/serving/dashboard_app
 COPY --from=frontend /app/serving/dashboard_app/static /app/serving/dashboard_app/static
 COPY transformation/sql /app/transformation/sql

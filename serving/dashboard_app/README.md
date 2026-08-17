@@ -14,6 +14,12 @@ mock_erp_pg operational tables
 
 ## Run
 
+Create the local environment file from the repository root and replace every `change-me` value:
+
+```bash
+cp .env.example .env
+```
+
 Create the shared Docker network if it does not exist:
 
 ```bash
@@ -23,14 +29,14 @@ docker network create end2end_data_network
 Start the mock ERP PostgreSQL source first:
 
 ```bash
-docker compose -f data_source/mock_erp_pg/docker-compose.mock_erp_pg.yml up -d --build
+docker compose --env-file .env -f data_source/mock_erp_pg/docker-compose.mock_erp_pg.yml up -d --build
 ```
 
 Start the analytics warehouse and pipeline:
 
 ```bash
-docker compose -f storage/data_warehouse_pg/docker-compose.data_warehouse_pg.yml up -d
-docker compose -f ingestion/custom_python/docker-compose.custom_python.yml up -d --build
+docker compose --env-file .env -f storage/data_warehouse_pg/docker-compose.data_warehouse_pg.yml up -d
+docker compose --env-file .env -f ingestion/custom_python/docker-compose.custom_python.yml up -d --build
 ```
 
 The pipeline performs a full refresh every 30 seconds by default. It copies
@@ -41,7 +47,7 @@ models there, and records the latest successful run in
 Start the dashboard service:
 
 ```bash
-docker compose -f serving/dashboard_app/docker-compose.dashboard_app.yml up -d --build
+docker compose --env-file .env -f serving/dashboard_app/docker-compose.dashboard_app.yml up -d --build
 ```
 
 Open:
@@ -83,15 +89,19 @@ During first startup, the `pipeline` field may be empty briefly while the pipeli
 
 ## Configuration
 
-Default warehouse database URL inside Docker:
+The dashboard reads the warehouse connection from either `DASHBOARD_DATABASE_URL` or these variables:
 
 ```text
-postgresql://analytics:analytics@data_warehouse_pg:5432/analytics_warehouse
+WAREHOUSE_POSTGRES_USER
+WAREHOUSE_POSTGRES_PASSWORD
+WAREHOUSE_POSTGRES_DB
 ```
+
+Keep the real values in the local `.env` file. The Docker Compose service constructs its internal connection URL without storing credentials in this document.
 
 Override the external dashboard port:
 
 ```bash
 DASHBOARD_EXTERNAL_PORT=8601 \
-docker compose -f serving/dashboard_app/docker-compose.dashboard_app.yml up -d --build
+docker compose --env-file .env -f serving/dashboard_app/docker-compose.dashboard_app.yml up -d --build
 ```

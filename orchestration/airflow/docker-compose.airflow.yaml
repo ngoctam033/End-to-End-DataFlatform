@@ -59,10 +59,10 @@ x-airflow-common:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@af_db/airflow
-    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@af_db/airflow
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_DB_USER:?AIRFLOW_DB_USER is required}:${AIRFLOW_DB_PASSWORD:?AIRFLOW_DB_PASSWORD is required}@af_db/${AIRFLOW_DB_NAME:-airflow}
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${AIRFLOW_DB_USER:?AIRFLOW_DB_USER is required}:${AIRFLOW_DB_PASSWORD:?AIRFLOW_DB_PASSWORD is required}@af_db/${AIRFLOW_DB_NAME:-airflow}
     AIRFLOW__CELERY__BROKER_URL: redis://:@af_redis:6379/0
-    AIRFLOW__CORE__FERNET_KEY: ''
+    AIRFLOW__CORE__FERNET_KEY: '${AIRFLOW_FERNET_KEY:?AIRFLOW_FERNET_KEY is required}'
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://af_api:8080/execution/'
@@ -92,8 +92,8 @@ x-airflow-common:
     #                                 "port": null,
     #                                 "extra": "{\"master\": \"local[*]\", \"deploy_mode\": \"client\"}"
     #                               }'
-    AIRFLOW_CONN_MINIO_DEFAULT: 'aws://admin:admin123@?endpoint_url=http%3A%2F%2Fminio%3A9000'
-    AIRFLOW_CONN_POSTGRES_DEFAULT: 'postgres://postgres:password@ecommerce_postgres:5432/ecommerce_db'
+    AIRFLOW_CONN_MINIO_DEFAULT: 'aws://${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD}@?endpoint_url=http%3A%2F%2Fminio%3A9000'
+    AIRFLOW_CONN_POSTGRES_DEFAULT: 'postgres://${WAREHOUSE_POSTGRES_USER}:${WAREHOUSE_POSTGRES_PASSWORD}@data_warehouse_pg:5432/${WAREHOUSE_POSTGRES_DB}'
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
@@ -114,11 +114,11 @@ services:
     image: postgres:16
     container_name: af_db
     environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
+      POSTGRES_USER: ${AIRFLOW_DB_USER:?AIRFLOW_DB_USER is required}
+      POSTGRES_PASSWORD: ${AIRFLOW_DB_PASSWORD:?AIRFLOW_DB_PASSWORD is required}
+      POSTGRES_DB: ${AIRFLOW_DB_NAME:-airflow}
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
+      test: ["CMD", "pg_isready", "-U", "$${POSTGRES_USER}", "-d", "$${POSTGRES_DB}"]
       interval: 10s
       retries: 5
       start_period: 5s
@@ -330,7 +330,7 @@ services:
       _AIRFLOW_DB_MIGRATE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
-      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:?_AIRFLOW_WWW_USER_PASSWORD is required}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
 

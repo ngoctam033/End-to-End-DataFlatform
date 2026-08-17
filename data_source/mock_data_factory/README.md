@@ -47,8 +47,8 @@ Then recreate the mock ERP database:
 
 ```bash
 cd data_source/mock_erp_pg
-docker compose -f docker-compose.mock_erp_pg.yml down -v
-docker compose -f docker-compose.mock_erp_pg.yml up -d mock_erp_pg
+docker compose --env-file ../../.env -f docker-compose.mock_erp_pg.yml down -v
+docker compose --env-file ../../.env -f docker-compose.mock_erp_pg.yml up -d mock_erp_pg
 ```
 
 ## Run Continuous Producer
@@ -56,23 +56,32 @@ docker compose -f docker-compose.mock_erp_pg.yml up -d mock_erp_pg
 Start the mock ERP backend and the continuous producer:
 
 ```bash
+cp .env.example .env
 cd data_source/mock_erp_pg
-docker compose -f docker-compose.mock_erp_pg.yml up -d --build
+docker compose --env-file ../../.env -f docker-compose.mock_erp_pg.yml up -d --build
 ```
 
-Run the producer locally with default settings:
+Run the producer locally after exporting the variables from the local `.env` file:
 
 ```bash
+set -a
+. ./.env
+set +a
 python data_source/mock_data_factory/run_mock_data_producer.py
 ```
 
-The default connection is:
+The producer builds its connection from these required environment variables:
 
 ```text
-postgresql://mock_erp:mock_erp@localhost:55432/mock_erp
+MOCK_ERP_POSTGRES_USER
+MOCK_ERP_POSTGRES_PASSWORD
+MOCK_ERP_POSTGRES_DB
+MOCK_ERP_PG_EXTERNAL_PORT
 ```
 
-Override defaults with environment variables when needed:
+`PIPELINE_SOURCE_DATABASE_URL` or `MOCK_DATA_PRODUCER_DATABASE_URL` may be used as an explicit connection URL override. Keep real credentials in `.env`; do not add them to documentation or source control.
+
+Override non-secret producer settings when needed:
 
 ```bash
 MOCK_DATA_PRODUCER_INTERVAL_SECONDS=5 \
@@ -84,7 +93,7 @@ Or run it as a Docker Compose service:
 
 ```bash
 cd data_source/mock_erp_pg
-docker compose -f docker-compose.mock_erp_pg.yml up -d --build
+docker compose --env-file ../../.env -f docker-compose.mock_erp_pg.yml up -d --build
 ```
 
 For a short smoke test, limit the number of batches:

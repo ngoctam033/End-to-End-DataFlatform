@@ -114,6 +114,8 @@ docker network create end2end_data_network
 
 *(Đang cập nhật - Hiện tại dự án đã hoàn thành cấu hình cho module Orchestration)*
 
+Trước khi khởi động service, tạo `.env` local theo hướng dẫn trong [Secrets Management](docs/operations/secrets_management.md). Không commit file `.env`.
+
 **Khởi động Airflow:**
 1. Di chuyển vào thư mục Airflow:
    ```bash
@@ -123,5 +125,4 @@ docker network create end2end_data_network
    ```bash
    docker compose -f docker-compose.airflow.yaml up -d --build
    ```
-3. Truy cập giao diện Airflow Web UI tại: `http://localhost:8081` 
-   *(Tài khoản mặc định: `airflow` / Mật khẩu: `airflow`)*.
+3. Truy cập giao diện Airflow Web UI tại: `http://localhost:8081`. Tài khoản local được cấu hình bằng `_AIRFLOW_WWW_USER_USERNAME` và `_AIRFLOW_WWW_USER_PASSWORD` trong `.env`.

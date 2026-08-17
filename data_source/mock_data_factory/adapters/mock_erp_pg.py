@@ -9,6 +9,8 @@ import subprocess
 
 from data_source.mock_data_factory.interfaces import TransactionWriter
 from data_source.mock_data_factory.models import BusinessScenarioSet
+# Configuration guide: docs/operations/secrets_management.md
+from shared.settings import settings
 
 
 def sql_string(value: str) -> str:
@@ -152,8 +154,15 @@ class MockErpPgTransactionWriter(TransactionWriter):
 class MockErpPgDockerPsqlTransactionWriter(TransactionWriter):
     """Writes transactions through psql inside the mock ERP PostgreSQL container."""
 
-    def __init__(self, compose_file: Path) -> None:
+    def __init__(
+        self,
+        compose_file: Path,
+        username: str | None = None,
+        dbname: str | None = None,
+    ) -> None:
         self.compose_file = compose_file
+        self.username = username or settings.mock_erp_db.user
+        self.dbname = dbname or settings.mock_erp_db.database
 
     def write(self, scenario_set: BusinessScenarioSet) -> None:
         payload = render_mock_erp_pg_sql(scenario_set)
@@ -167,8 +176,8 @@ class MockErpPgDockerPsqlTransactionWriter(TransactionWriter):
                 "-T",
                 "mock_erp_pg",
                 "psql",
-                "--username=mock_erp",
-                "--dbname=mock_erp",
+                f"--username={self.username}",
+                f"--dbname={self.dbname}",
                 "--set=ON_ERROR_STOP=1",
             ],
             input=payload,
