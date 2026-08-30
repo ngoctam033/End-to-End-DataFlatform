@@ -5,6 +5,10 @@ services:
       - db
     ports:
       - "8070:8069"
+    cpus: "2.0"
+    mem_limit: 2g
+    mem_reservation: 512m
+    pids_limit: 256
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./config:/etc/odoo
