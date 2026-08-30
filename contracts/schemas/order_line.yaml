@@ -1,0 +1,39 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://data-platform.local/contracts/1.0.0/order_line.yaml"
+title: Canonical order line contract
+description: Canonical product line belonging to a sales order.
+version: "1.0.0"
+allOf:
+  - $ref: "common.yaml#/$defs/envelope"
+  - properties:
+      business_key:
+        pattern: "^ORDL-[A-Z0-9_]+-.+-.+$"
+      payload:
+        type: object
+        required: [order_line_key, order_key, product_key, sku, warehouse_code, ordered_qty, unit_price_amount, discount_amount, gross_amount, net_amount, currency]
+        properties:
+          order_line_key: {$ref: "common.yaml#/$defs/business_code"}
+          order_key: {$ref: "common.yaml#/$defs/business_code"}
+          product_key: {$ref: "common.yaml#/$defs/business_code"}
+          sku: {$ref: "common.yaml#/$defs/business_code"}
+          warehouse_code: {$ref: "common.yaml#/$defs/business_code"}
+          promotion_code:
+            anyOf:
+              - {$ref: "common.yaml#/$defs/business_code"}
+              - {type: "null"}
+          lot_number:
+            anyOf:
+              - {$ref: "common.yaml#/$defs/business_code"}
+              - {type: "null"}
+          expiration_date:
+            anyOf:
+              - {$ref: "common.yaml#/$defs/iso_date"}
+              - {type: "null"}
+          ordered_qty: {$ref: "common.yaml#/$defs/positive_quantity"}
+          unit_price_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          discount_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          gross_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          net_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          estimated_cost_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          currency: {$ref: "common.yaml#/$defs/currency_code"}
+        additionalProperties: false

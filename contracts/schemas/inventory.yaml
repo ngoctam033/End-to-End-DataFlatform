@@ -1,0 +1,40 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://data-platform.local/contracts/1.0.0/inventory.yaml"
+title: Canonical inventory contract
+description: Canonical inventory balance for a warehouse, SKU, and optional lot.
+version: "1.0.0"
+allOf:
+  - $ref: "common.yaml#/$defs/envelope"
+  - properties:
+      business_key:
+        pattern: "^INV-[A-Z0-9_]+-.+-.+$"
+      payload:
+        type: object
+        required: [inventory_key, warehouse_code, product_key, sku, on_hand_qty, reserved_qty, available_qty, updated_at]
+        properties:
+          inventory_key: {$ref: "common.yaml#/$defs/business_code"}
+          warehouse_code: {$ref: "common.yaml#/$defs/business_code"}
+          location_code:
+            anyOf:
+              - {$ref: "common.yaml#/$defs/business_code"}
+              - {type: "null"}
+          product_key: {$ref: "common.yaml#/$defs/business_code"}
+          sku: {$ref: "common.yaml#/$defs/business_code"}
+          lot_number:
+            anyOf:
+              - {$ref: "common.yaml#/$defs/business_code"}
+              - {type: "null"}
+          manufacturing_date:
+            anyOf:
+              - {$ref: "common.yaml#/$defs/iso_date"}
+              - {type: "null"}
+          expiration_date:
+            anyOf:
+              - {$ref: "common.yaml#/$defs/iso_date"}
+              - {type: "null"}
+          on_hand_qty: {$ref: "common.yaml#/$defs/non_negative_quantity"}
+          reserved_qty: {$ref: "common.yaml#/$defs/non_negative_quantity"}
+          available_qty: {$ref: "common.yaml#/$defs/non_negative_quantity"}
+          reorder_point_qty: {$ref: "common.yaml#/$defs/non_negative_quantity"}
+          updated_at: {$ref: "common.yaml#/$defs/utc_timestamp"}
+        additionalProperties: false

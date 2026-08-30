@@ -1,0 +1,36 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://data-platform.local/contracts/1.0.0/payment.yaml"
+title: Canonical payment contract
+description: Canonical payment transaction associated with an invoice or order.
+version: "1.0.0"
+allOf:
+  - $ref: "common.yaml#/$defs/envelope"
+  - properties:
+      business_key:
+        pattern: "^PAY-[A-Z0-9_]+-.+$"
+      payload:
+        type: object
+        required: [payment_key, customer_key, transaction_reference, payment_date, payment_method, payment_status, paid_amount, currency, created_at]
+        anyOf:
+          - required: [invoice_key]
+          - required: [order_key]
+        properties:
+          payment_key: {$ref: "common.yaml#/$defs/business_code"}
+          invoice_key: {$ref: "common.yaml#/$defs/business_code"}
+          order_key: {$ref: "common.yaml#/$defs/business_code"}
+          customer_key: {$ref: "common.yaml#/$defs/business_code"}
+          transaction_reference: {$ref: "common.yaml#/$defs/business_code"}
+          payment_date: {$ref: "common.yaml#/$defs/iso_date"}
+          payment_method:
+            type: string
+            enum: [BANK_TRANSFER, CASH, CARD, E_WALLET, COD, OTHER]
+          payment_status:
+            type: string
+            enum: [PENDING, AUTHORIZED, PAID, FAILED, REVERSED, REFUNDED, CANCELLED]
+          paid_amount:
+            type: number
+            exclusiveMinimum: 0
+            multipleOf: 0.0001
+          currency: {$ref: "common.yaml#/$defs/currency_code"}
+          created_at: {$ref: "common.yaml#/$defs/utc_timestamp"}
+        additionalProperties: false

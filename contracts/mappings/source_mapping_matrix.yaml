@@ -1,0 +1,219 @@
+version: "1.0.0"
+canonical_contract_version: "1.0.0"
+source_profiles:
+  mock_erp_pg:
+    source_system: postgres_erp
+    status: implemented
+    shape: relational
+  odoo:
+    source_system: odoo
+    status: contract_only
+    shape: relational_api
+  oms:
+    source_system: oms
+    status: contract_only
+    shape: json_api
+  wms:
+    source_system: wms
+    status: contract_only
+    shape: json_api
+  ops:
+    source_system: ops
+    status: contract_only
+    shape: json_api
+  mongodb_catalog:
+    source_system: mongodb_catalog
+    status: contract_only
+    shape: document
+  external_api:
+    source_system: external_api
+    status: contract_only
+    shape: json_api
+
+entities:
+  order:
+    owner_sources: [mock_erp_pg, odoo, oms]
+    prospective_sources: [external_api]
+    business_key: "ORD-{SOURCE_SYSTEM_UPPER}-{source_key}"
+    source_key: erp_sales.sales_orders.order_number
+    event_time: erp_sales.sales_orders.updated_at
+    joins:
+      - erp_core.customers via customer_id
+      - erp_core.companies via company_id
+      - erp_core.branches via branch_id
+      - erp_core.sales_channels via channel_id
+    mappings:
+      order_key: sales_orders.order_number
+      customer_key: customers.customer_code
+      company_code: companies.company_code
+      branch_code: branches.branch_code
+      channel_code: sales_channels.channel_code
+      order_date: sales_orders.order_date
+      order_status: "upper(sales_orders.order_status)"
+      currency: "upper(sales_orders.currency)"
+      gross_amount: sales_orders.gross_amount
+      discount_amount: sales_orders.discount_amount
+      tax_amount: "constant 0"
+      shipping_amount: "coalesce(sum(shipments.shipping_fee), 0)"
+      net_amount: sales_orders.net_amount
+      created_at: "utc(sales_orders.created_at)"
+      updated_at: "utc(sales_orders.updated_at)"
+    enum_maps:
+      order_status:
+        draft: DRAFT
+        confirmed: CONFIRMED
+        fulfilled: FULFILLED
+        invoiced: INVOICED
+        paid: PAID
+        cancelled: CANCELLED
+
+  order_line:
+    owner_sources: [mock_erp_pg, odoo, oms]
+    prospective_sources: [external_api]
+    business_key: "ORDL-{SOURCE_SYSTEM_UPPER}-{source_order_key}-{source_key}"
+    source_key: erp_sales.sales_order_lines.order_line_id
+    event_time: erp_sales.sales_orders.updated_at
+    joins:
+      - erp_sales.sales_orders via order_id
+      - erp_core.products via product_id
+      - erp_core.warehouses via warehouse_id
+      - erp_sales.promotions via promotion_id (left join)
+      - erp_inventory.stock_lots via product_id and warehouse_id (optional allocation)
+    mappings:
+      order_line_key: "string(sales_order_lines.order_line_id)"
+      order_key: sales_orders.order_number
+      product_key: "string(sales_order_lines.product_id)"
+      sku: products.sku
+      warehouse_code: warehouses.warehouse_code
+      promotion_code: promotions.promotion_code
+      lot_number: "stock_lots.lot_number or null"
+      expiration_date: "stock_lots.expiration_date or null"
+      ordered_qty: sales_order_lines.quantity
+      unit_price_amount: sales_order_lines.unit_price
+      discount_amount: sales_order_lines.discount_amount
+      gross_amount: sales_order_lines.gross_amount
+      net_amount: sales_order_lines.net_amount
+      estimated_cost_amount: sales_order_lines.estimated_cost
+      currency: "upper(sales_orders.currency)"
+
+  inventory:
+    owner_sources: [mock_erp_pg, odoo, wms]
+    prospective_sources: [mongodb_catalog]
+    business_key: "INV-{SOURCE_SYSTEM_UPPER}-{warehouse_code}-{sku}"
+    source_key: "warehouse_code + ':' + sku"
+    event_time: erp_inventory.stock_balances.updated_at
+    joins:
+      - erp_core.warehouses via warehouse_id
+      - erp_core.products via product_id
+      - erp_inventory.stock_lots via product_id and warehouse_id (left join)
+    mappings:
+      inventory_key: "warehouses.warehouse_code + ':' + products.sku"
+      warehouse_code: warehouses.warehouse_code
+      location_code: "null (source has no location grain)"
+      product_key: "string(stock_balances.product_id)"
+      sku: products.sku
+      lot_number: "stock_lots.lot_number or null"
+      manufacturing_date: "stock_lots.manufacturing_date or null"
+      expiration_date: "stock_lots.expiration_date or null"
+      on_hand_qty: stock_balances.on_hand_qty
+      reserved_qty: stock_balances.reserved_qty
+      available_qty: "stock_balances.on_hand_qty - stock_balances.reserved_qty"
+      reorder_point_qty: stock_balances.reorder_point
+      updated_at: "utc(stock_balances.updated_at)"
+
+  shipment:
+    owner_sources: [mock_erp_pg, odoo, ops]
+    prospective_sources: [external_api]
+    business_key: "SHP-{SOURCE_SYSTEM_UPPER}-{tracking_number}"
+    source_key: erp_logistics.shipments.shipment_number
+    event_time: erp_logistics.shipments.updated_at
+    joins:
+      - erp_sales.sales_orders via order_id
+      - erp_core.warehouses via warehouse_id
+      - erp_core.carriers via carrier_id
+    mappings:
+      shipment_key: shipments.shipment_number
+      order_key: sales_orders.order_number
+      warehouse_code: warehouses.warehouse_code
+      carrier_code: carriers.carrier_code
+      tracking_number: shipments.shipment_number
+      planned_ship_date: shipments.planned_ship_date
+      actual_ship_date: shipments.actual_ship_date
+      planned_delivery_date: shipments.planned_delivery_date
+      actual_delivery_date: shipments.actual_delivery_date
+      shipment_status: "upper(shipments.shipment_status)"
+      shipping_amount: shipments.shipping_fee
+      currency: "upper(sales_orders.currency)"
+      created_at: "utc(shipments.created_at)"
+      updated_at: "utc(shipments.updated_at)"
+    enum_maps:
+      shipment_status:
+        planned: PLANNED
+        in_transit: IN_TRANSIT
+        delivered: DELIVERED
+        failed: FAILED
+        returned: RETURNED
+        cancelled: CANCELLED
+
+  return:
+    owner_sources: [mock_erp_pg, odoo, oms]
+    prospective_sources: [ops, external_api]
+    business_key: "RET-{SOURCE_SYSTEM_UPPER}-{source_key}"
+    source_key: erp_sales.returns.return_id
+    event_time: erp_sales.returns.created_at
+    joins:
+      - erp_sales.sales_orders via order_id
+      - erp_sales.sales_order_lines via order_line_id
+      - erp_core.customers via customer_id
+      - erp_core.products via product_id
+    mappings:
+      return_key: "string(returns.return_id)"
+      order_key: sales_orders.order_number
+      order_line_key: "string(returns.order_line_id)"
+      customer_key: customers.customer_code
+      product_key: "string(returns.product_id)"
+      sku: products.sku
+      return_date: returns.return_date
+      return_reason: returns.return_reason
+      returned_qty: returns.quantity
+      refund_amount: returns.refund_amount
+      currency: "upper(sales_orders.currency)"
+      return_status: "upper(returns.return_status)"
+      created_at: "utc(returns.created_at)"
+    enum_maps:
+      return_status:
+        approved: APPROVED
+        refunded: REFUNDED
+        rejected: REJECTED
+
+  payment:
+    owner_sources: [mock_erp_pg, odoo, oms]
+    prospective_sources: [external_api]
+    business_key: "PAY-{SOURCE_SYSTEM_UPPER}-{transaction_reference}"
+    source_key: erp_finance.payments.transaction_reference
+    event_time: erp_finance.payments.created_at
+    joins:
+      - erp_finance.invoices via invoice_id
+      - erp_sales.sales_orders via invoices.order_id
+      - erp_core.customers via customer_id
+    mappings:
+      payment_key: payments.transaction_reference
+      invoice_key: invoices.invoice_number
+      order_key: sales_orders.order_number
+      customer_key: customers.customer_code
+      transaction_reference: payments.transaction_reference
+      payment_date: payments.payment_date
+      payment_method: "upper(payments.payment_method)"
+      payment_status: "upper(payments.payment_status)"
+      paid_amount: payments.amount_paid
+      currency: "upper(sales_orders.currency)"
+      created_at: "utc(payments.created_at)"
+    enum_maps:
+      payment_method:
+        bank_transfer: BANK_TRANSFER
+        cash: CASH
+        card: CARD
+        e_wallet: E_WALLET
+      payment_status:
+        paid: PAID
+        reversed: REVERSED

@@ -1,0 +1,68 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://data-platform.local/contracts/1.0.0/common.yaml"
+title: Canonical contract shared definitions
+description: Shared metadata envelope and scalar definitions for Silver records.
+$defs:
+  utc_timestamp:
+    type: string
+    format: date-time
+    pattern: "Z$"
+  iso_date:
+    type: string
+    format: date
+  business_code:
+    type: string
+    minLength: 1
+    maxLength: 128
+  non_negative_quantity:
+    type: number
+    minimum: 0
+    multipleOf: 0.001
+  positive_quantity:
+    type: number
+    exclusiveMinimum: 0
+    multipleOf: 0.001
+  non_negative_amount:
+    type: number
+    minimum: 0
+    multipleOf: 0.0001
+  currency_code:
+    type: string
+    pattern: "^[A-Z]{3}$"
+  envelope:
+    type: object
+    required:
+      - business_key
+      - source_key
+      - source_system
+      - event_time
+      - ingestion_time
+      - schema_version
+      - processing_status
+      - payload
+    properties:
+      business_key:
+        type: string
+        minLength: 1
+        maxLength: 256
+      source_key:
+        type: string
+        minLength: 1
+        maxLength: 256
+      source_system:
+        type: string
+        pattern: "^[a-z][a-z0-9_]*$"
+        minLength: 2
+        maxLength: 64
+      event_time:
+        $ref: "#/$defs/utc_timestamp"
+      ingestion_time:
+        $ref: "#/$defs/utc_timestamp"
+      schema_version:
+        const: "1.0.0"
+      processing_status:
+        type: string
+        enum: [VALID, QUARANTINED, WARNING]
+      payload:
+        type: object
+    additionalProperties: false

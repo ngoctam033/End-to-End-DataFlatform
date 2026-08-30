@@ -1,0 +1,157 @@
+cases:
+  - case_id: postgres_order
+    source_profile: mock_erp_pg
+    entity: order
+    source_system: postgres_erp
+    business_key: ORD-POSTGRES_ERP-SO-1001
+    source_key: SO-1001
+    event_time: "2026-08-28T01:30:00Z"
+    payload:
+      order_key: SO-1001
+      customer_key: CUS-00001
+      company_code: FMCG-VN
+      branch_code: HN
+      channel_code: WEB
+      order_date: "2026-08-28"
+      order_status: CONFIRMED
+      currency: VND
+      gross_amount: 120000
+      discount_amount: 10000
+      tax_amount: 0
+      shipping_amount: 15000
+      net_amount: 110000
+      created_at: "2026-08-28T01:30:00Z"
+      updated_at: "2026-08-28T01:30:30Z"
+
+  - case_id: odoo_order_line
+    source_profile: odoo
+    entity: order_line
+    source_system: odoo
+    business_key: ORDL-ODOO-SO2002-10
+    source_key: "10"
+    event_time: "2026-08-28T02:15:00Z"
+    payload:
+      order_line_key: "10"
+      order_key: SO2002
+      product_key: "42"
+      sku: BIS-OAT-120
+      warehouse_code: WH-HCM
+      promotion_code: null
+      lot_number: null
+      expiration_date: null
+      ordered_qty: 5
+      unit_price_amount: 25000
+      discount_amount: 0
+      gross_amount: 125000
+      net_amount: 125000
+      estimated_cost_amount: 80000
+      currency: VND
+
+  - case_id: oms_return
+    source_profile: oms
+    entity: return
+    source_system: oms
+    business_key: RET-OMS-RET0012
+    source_key: RET0012
+    event_time: "2026-08-28T03:10:00Z"
+    payload:
+      return_key: RET0012
+      order_key: ORD10045
+      order_line_key: LINE1
+      customer_key: CUS009
+      product_key: PROD42
+      sku: TEA-LEM-330
+      return_date: "2026-08-28"
+      return_reason: damaged_package
+      returned_qty: 1
+      refund_amount: 10000
+      currency: VND
+      return_status: APPROVED
+      created_at: "2026-08-28T03:10:00Z"
+
+  - case_id: wms_inventory
+    source_profile: wms
+    entity: inventory
+    source_system: wms
+    business_key: INV-WMS-WH01-SKU8839
+    source_key: WH01:SKU8839
+    event_time: "2026-08-28T04:20:00Z"
+    payload:
+      inventory_key: WH01:SKU8839
+      warehouse_code: WH01
+      location_code: PICK-A01
+      product_key: PROD8839
+      sku: SKU8839
+      lot_number: LOT-202608-A
+      manufacturing_date: "2026-08-01"
+      expiration_date: "2027-02-01"
+      on_hand_qty: 500
+      reserved_qty: 25
+      available_qty: 475
+      reorder_point_qty: 100
+      updated_at: "2026-08-28T04:20:00Z"
+
+  - case_id: ops_shipment
+    source_profile: ops
+    entity: shipment
+    source_system: ops
+    business_key: SHP-OPS-GHN99281
+    source_key: GHN99281
+    event_time: "2026-08-28T05:25:00Z"
+    payload:
+      shipment_key: SHIP9001
+      order_key: ORD10045
+      warehouse_code: WH01
+      carrier_code: GHN-STD
+      tracking_number: GHN99281
+      planned_ship_date: "2026-08-28"
+      actual_ship_date: "2026-08-28"
+      planned_delivery_date: "2026-08-30"
+      actual_delivery_date: null
+      shipment_status: IN_TRANSIT
+      shipping_amount: 15000
+      currency: VND
+      created_at: "2026-08-28T05:00:00Z"
+      updated_at: "2026-08-28T05:25:00Z"
+
+  - case_id: mongodb_inventory
+    source_profile: mongodb_catalog
+    entity: inventory
+    source_system: mongodb_catalog
+    business_key: INV-MONGODB_CATALOG-WH02-SKU2200
+    source_key: WH02:SKU2200
+    event_time: "2026-08-28T06:35:00Z"
+    payload:
+      inventory_key: WH02:SKU2200
+      warehouse_code: WH02
+      location_code: null
+      product_key: 66af-product-2200
+      sku: SKU2200
+      lot_number: LOT-MONGO-01
+      manufacturing_date: "2026-07-01"
+      expiration_date: "2027-01-01"
+      on_hand_qty: 80
+      reserved_qty: 0
+      available_qty: 80
+      reorder_point_qty: 20
+      updated_at: "2026-08-28T06:35:00Z"
+
+  - case_id: external_api_payment
+    source_profile: external_api
+    entity: payment
+    source_system: external_api
+    business_key: PAY-EXTERNAL_API-PAYPAL9981
+    source_key: PAYPAL9981
+    event_time: "2026-08-28T07:45:00Z"
+    payload:
+      payment_key: PAYPAL9981
+      invoice_key: INV-1001
+      order_key: ORD10045
+      customer_key: CUS009
+      transaction_reference: PAYPAL9981
+      payment_date: "2026-08-28"
+      payment_method: E_WALLET
+      payment_status: PAID
+      paid_amount: 110000
+      currency: VND
+      created_at: "2026-08-28T07:45:00Z"

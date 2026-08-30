@@ -1,0 +1,37 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://data-platform.local/contracts/1.0.0/shipment.yaml"
+title: Canonical shipment contract
+description: Canonical outbound shipment and delivery lifecycle record.
+version: "1.0.0"
+allOf:
+  - $ref: "common.yaml#/$defs/envelope"
+  - properties:
+      business_key:
+        pattern: "^SHP-[A-Z0-9_]+-.+$"
+      payload:
+        type: object
+        required: [shipment_key, order_key, warehouse_code, carrier_code, tracking_number, planned_ship_date, planned_delivery_date, shipment_status, shipping_amount, currency, created_at, updated_at]
+        properties:
+          shipment_key: {$ref: "common.yaml#/$defs/business_code"}
+          order_key: {$ref: "common.yaml#/$defs/business_code"}
+          warehouse_code: {$ref: "common.yaml#/$defs/business_code"}
+          carrier_code: {$ref: "common.yaml#/$defs/business_code"}
+          tracking_number: {$ref: "common.yaml#/$defs/business_code"}
+          planned_ship_date: {$ref: "common.yaml#/$defs/iso_date"}
+          actual_ship_date:
+            anyOf:
+              - {$ref: "common.yaml#/$defs/iso_date"}
+              - {type: "null"}
+          planned_delivery_date: {$ref: "common.yaml#/$defs/iso_date"}
+          actual_delivery_date:
+            anyOf:
+              - {$ref: "common.yaml#/$defs/iso_date"}
+              - {type: "null"}
+          shipment_status:
+            type: string
+            enum: [PLANNED, IN_TRANSIT, DELIVERED, FAILED, RETURNED, CANCELLED]
+          shipping_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          currency: {$ref: "common.yaml#/$defs/currency_code"}
+          created_at: {$ref: "common.yaml#/$defs/utc_timestamp"}
+          updated_at: {$ref: "common.yaml#/$defs/utc_timestamp"}
+        additionalProperties: false

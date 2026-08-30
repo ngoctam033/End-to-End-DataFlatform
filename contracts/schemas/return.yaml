@@ -1,0 +1,33 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://data-platform.local/contracts/1.0.0/return.yaml"
+title: Canonical return contract
+description: Canonical customer product return and refund record.
+version: "1.0.0"
+allOf:
+  - $ref: "common.yaml#/$defs/envelope"
+  - properties:
+      business_key:
+        pattern: "^RET-[A-Z0-9_]+-.+$"
+      payload:
+        type: object
+        required: [return_key, order_key, order_line_key, customer_key, product_key, sku, return_date, return_reason, returned_qty, refund_amount, currency, return_status, created_at]
+        properties:
+          return_key: {$ref: "common.yaml#/$defs/business_code"}
+          order_key: {$ref: "common.yaml#/$defs/business_code"}
+          order_line_key: {$ref: "common.yaml#/$defs/business_code"}
+          customer_key: {$ref: "common.yaml#/$defs/business_code"}
+          product_key: {$ref: "common.yaml#/$defs/business_code"}
+          sku: {$ref: "common.yaml#/$defs/business_code"}
+          return_date: {$ref: "common.yaml#/$defs/iso_date"}
+          return_reason:
+            type: string
+            minLength: 1
+            maxLength: 512
+          returned_qty: {$ref: "common.yaml#/$defs/positive_quantity"}
+          refund_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          currency: {$ref: "common.yaml#/$defs/currency_code"}
+          return_status:
+            type: string
+            enum: [REQUESTED, APPROVED, RECEIVED, REFUNDED, REJECTED, CANCELLED]
+          created_at: {$ref: "common.yaml#/$defs/utc_timestamp"}
+        additionalProperties: false

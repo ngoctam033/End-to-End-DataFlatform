@@ -1,0 +1,140 @@
+order:
+  business_key: ORD-POSTGRES_ERP-SO-1001
+  source_key: "1001"
+  source_system: postgres_erp
+  event_time: "2026-08-28T01:30:00Z"
+  ingestion_time: "2026-08-28T01:31:00Z"
+  schema_version: "1.0.0"
+  processing_status: VALID
+  payload:
+    order_key: SO-1001
+    customer_key: CUS-00001
+    company_code: FMCG-VN
+    branch_code: HN
+    channel_code: WEB
+    order_date: "2026-08-28"
+    order_status: CONFIRMED
+    currency: VND
+    gross_amount: 120000
+    discount_amount: 10000
+    tax_amount: 0
+    shipping_amount: 15000
+    net_amount: 110000
+    created_at: "2026-08-28T01:30:00Z"
+    updated_at: "2026-08-28T01:30:30Z"
+
+order_line:
+  business_key: ORDL-POSTGRES_ERP-1001-1
+  source_key: "1"
+  source_system: postgres_erp
+  event_time: "2026-08-28T01:30:00Z"
+  ingestion_time: "2026-08-28T01:31:00Z"
+  schema_version: "1.0.0"
+  processing_status: VALID
+  payload:
+    order_line_key: SOL-1
+    order_key: SO-1001
+    product_key: PROD-1
+    sku: TEA-LEM-330
+    warehouse_code: WH-HN
+    promotion_code: WEB-TEA-AUG10
+    lot_number: LOT-20260801-A
+    expiration_date: "2027-02-01"
+    ordered_qty: 12
+    unit_price_amount: 10000
+    discount_amount: 10000
+    gross_amount: 120000
+    net_amount: 110000
+    estimated_cost_amount: 72000
+    currency: VND
+
+inventory:
+  business_key: INV-WMS-WH-HN-TEA-LEM-330
+  source_key: WH-HN:TEA-LEM-330
+  source_system: wms
+  event_time: "2026-08-28T01:29:45Z"
+  ingestion_time: "2026-08-28T01:31:00Z"
+  schema_version: "1.0.0"
+  processing_status: VALID
+  payload:
+    inventory_key: WH-HN:TEA-LEM-330
+    warehouse_code: WH-HN
+    location_code: PICK-A01
+    product_key: PROD-1
+    sku: TEA-LEM-330
+    lot_number: LOT-20260801-A
+    manufacturing_date: "2026-08-01"
+    expiration_date: "2027-02-01"
+    on_hand_qty: 500
+    reserved_qty: 12
+    available_qty: 488
+    reorder_point_qty: 100
+    updated_at: "2026-08-28T01:29:45Z"
+
+shipment:
+  business_key: SHP-OPS-GHN99281
+  source_key: GHN99281
+  source_system: ops
+  event_time: "2026-08-28T02:00:00Z"
+  ingestion_time: "2026-08-28T02:01:00Z"
+  schema_version: "1.0.0"
+  processing_status: VALID
+  payload:
+    shipment_key: SHIP-1001
+    order_key: SO-1001
+    warehouse_code: WH-HN
+    carrier_code: GHN-STD
+    tracking_number: GHN99281
+    planned_ship_date: "2026-08-28"
+    actual_ship_date: "2026-08-28"
+    planned_delivery_date: "2026-08-30"
+    actual_delivery_date: null
+    shipment_status: IN_TRANSIT
+    shipping_amount: 15000
+    currency: VND
+    created_at: "2026-08-28T02:00:00Z"
+    updated_at: "2026-08-28T02:00:00Z"
+
+return:
+  business_key: RET-OMS-RET0012
+  source_key: RET0012
+  source_system: oms
+  event_time: "2026-08-28T05:00:00Z"
+  ingestion_time: "2026-08-28T05:01:00Z"
+  schema_version: "1.0.0"
+  processing_status: VALID
+  payload:
+    return_key: RET0012
+    order_key: SO-1001
+    order_line_key: SOL-1
+    customer_key: CUS-00001
+    product_key: PROD-1
+    sku: TEA-LEM-330
+    return_date: "2026-08-28"
+    return_reason: damaged_package
+    returned_qty: 1
+    refund_amount: 9166.6667
+    currency: VND
+    return_status: APPROVED
+    created_at: "2026-08-28T05:00:00Z"
+
+payment:
+  business_key: PAY-EXTERNAL_API-PAYPAL9981
+  source_key: PAYPAL9981
+  source_system: external_api
+  event_time: "2026-08-28T03:00:00Z"
+  ingestion_time: "2026-08-28T03:01:00Z"
+  schema_version: "1.0.0"
+  processing_status: VALID
+  payload:
+    payment_key: PAYPAL9981
+    invoice_key: INV-1001
+    order_key: SO-1001
+    customer_key: CUS-00001
+    transaction_reference: PAYPAL9981
+    payment_date: "2026-08-28"
+    payment_method: E_WALLET
+    payment_status: PAID
+    paid_amount: 110000
+    currency: VND
+    created_at: "2026-08-28T03:00:00Z"

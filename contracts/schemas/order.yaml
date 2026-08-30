@@ -1,0 +1,32 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://data-platform.local/contracts/1.0.0/order.yaml"
+title: Canonical order contract
+description: Canonical sales order header from an OMS, ERP, POS, or marketplace.
+version: "1.0.0"
+allOf:
+  - $ref: "common.yaml#/$defs/envelope"
+  - properties:
+      business_key:
+        pattern: "^ORD-[A-Z0-9_]+-.+$"
+      payload:
+        type: object
+        required: [order_key, customer_key, channel_code, order_date, order_status, currency, gross_amount, discount_amount, net_amount, created_at, updated_at]
+        properties:
+          order_key: {$ref: "common.yaml#/$defs/business_code"}
+          customer_key: {$ref: "common.yaml#/$defs/business_code"}
+          company_code: {$ref: "common.yaml#/$defs/business_code"}
+          branch_code: {$ref: "common.yaml#/$defs/business_code"}
+          channel_code: {$ref: "common.yaml#/$defs/business_code"}
+          order_date: {$ref: "common.yaml#/$defs/iso_date"}
+          order_status:
+            type: string
+            enum: [DRAFT, CONFIRMED, FULFILLED, INVOICED, PAID, CANCELLED]
+          currency: {$ref: "common.yaml#/$defs/currency_code"}
+          gross_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          discount_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          tax_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          shipping_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          net_amount: {$ref: "common.yaml#/$defs/non_negative_amount"}
+          created_at: {$ref: "common.yaml#/$defs/utc_timestamp"}
+          updated_at: {$ref: "common.yaml#/$defs/utc_timestamp"}
+        additionalProperties: false
