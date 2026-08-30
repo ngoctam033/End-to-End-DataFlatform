@@ -2,7 +2,7 @@
 id: BL-029
 status: backlog
 priority: P1
-priority_rank: 290
+priority_rank: 300
 category: reliability
 owner: unassigned
 created_at: 2026-08-15

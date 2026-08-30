@@ -2,7 +2,7 @@
 id: BL-026
 status: backlog
 priority: P3
-priority_rank: 170
+priority_rank: 180
 category: platform
 owner: unassigned
 created_at: 2026-08-15

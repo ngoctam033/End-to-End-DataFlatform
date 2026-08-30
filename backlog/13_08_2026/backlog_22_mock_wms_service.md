@@ -2,7 +2,7 @@
 id: BL-022
 status: backlog
 priority: P2
-priority_rank: 130
+priority_rank: 140
 category: business
 owner: unassigned
 created_at: 2026-08-15

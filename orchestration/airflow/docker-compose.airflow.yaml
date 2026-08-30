@@ -62,7 +62,9 @@ x-airflow-common:
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_DB_USER:?AIRFLOW_DB_USER is required}:${AIRFLOW_DB_PASSWORD:?AIRFLOW_DB_PASSWORD is required}@af_db/${AIRFLOW_DB_NAME:-airflow}
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${AIRFLOW_DB_USER:?AIRFLOW_DB_USER is required}:${AIRFLOW_DB_PASSWORD:?AIRFLOW_DB_PASSWORD is required}@af_db/${AIRFLOW_DB_NAME:-airflow}
     AIRFLOW__CELERY__BROKER_URL: redis://:@af_redis:6379/0
-    AIRFLOW__CORE__FERNET_KEY: '${AIRFLOW_FERNET_KEY:?AIRFLOW_FERNET_KEY is required}'
+    # Keep local startup zero-config by falling back to the shared development key
+    # from config/airflow.cfg. Override AIRFLOW_FERNET_KEY outside local development.
+    AIRFLOW__CORE__FERNET_KEY: '${AIRFLOW_FERNET_KEY:-Gca4PFHv8YfKrKe6jCfhE34PcT8ugnofeon-eFM1LKg=}'
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://af_api:8080/execution/'
@@ -118,7 +120,7 @@ services:
       POSTGRES_PASSWORD: ${AIRFLOW_DB_PASSWORD:?AIRFLOW_DB_PASSWORD is required}
       POSTGRES_DB: ${AIRFLOW_DB_NAME:-airflow}
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "$${POSTGRES_USER}", "-d", "$${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       retries: 5
       start_period: 5s

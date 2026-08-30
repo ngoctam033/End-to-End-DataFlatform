@@ -2,7 +2,7 @@
 id: BL-007
 status: backlog
 priority: P1
-priority_rank: 40
+priority_rank: 50
 category: platform
 owner: unassigned
 created_at: 2026-08-13

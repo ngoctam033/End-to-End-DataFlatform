@@ -35,6 +35,10 @@ transformation/dbt/logs/
 **/tmp/
 **/.cache/
 
+# Local checkout of the Odoo Community source. Custom modules live outside
+# this directory in data_source/odoo/custom_addons and remain tracked.
+data_source/odoo/odoo/
+
 # OS/editor noise
 .DS_Store
 Thumbs.db

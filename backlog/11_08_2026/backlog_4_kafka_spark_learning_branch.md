@@ -2,7 +2,7 @@
 id: BL-004
 status: backlog
 priority: P2
-priority_rank: 200
+priority_rank: 210
 category: architecture
 owner: unassigned
 created_at: 2026-08-11

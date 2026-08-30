@@ -2,7 +2,7 @@
 id: BL-006
 status: backlog
 priority: P3
-priority_rank: 270
+priority_rank: 280
 category: analytics
 owner: unassigned
 created_at: 2026-08-11

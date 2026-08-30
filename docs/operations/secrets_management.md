@@ -35,7 +35,10 @@ cp .env.example .env
 
 Thay toàn bộ giá trị `change-me` trong `.env` bằng giá trị local đủ mạnh.
 
-Tạo Airflow Fernet key:
+Với local development, `AIRFLOW_FERNET_KEY` có thể để trống; Docker Compose sẽ dùng
+shared development key trong `orchestration/airflow/config/airflow.cfg`.
+
+Ngoài local development, tạo key riêng:
 
 ```bash
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
@@ -68,7 +71,7 @@ Không gửi nội dung `.env` qua chat, issue, pull request hoặc log CI.
 | Airflow | `AIRFLOW_DB_USER` | Có | Metadata database user |
 | Airflow | `AIRFLOW_DB_PASSWORD` | Có | Metadata database password |
 | Airflow | `AIRFLOW_DB_NAME` | Không | Metadata database name |
-| Airflow | `AIRFLOW_FERNET_KEY` | Có | Mã hóa Airflow connections/variables |
+| Airflow | `AIRFLOW_FERNET_KEY` | Không (local), có (môi trường khác) | Mã hóa Airflow connections/variables |
 | Airflow | `_AIRFLOW_WWW_USER_USERNAME` | Không | Local admin username |
 | Airflow | `_AIRFLOW_WWW_USER_PASSWORD` | Có | Local admin password |
 | Odoo | `ODOO_DB_USER` | Có | Odoo database user |

@@ -2,7 +2,7 @@
 id: BL-008
 status: backlog
 priority: P1
-priority_rank: 50
+priority_rank: 60
 category: platform
 owner: unassigned
 created_at: 2026-08-13

@@ -2,7 +2,7 @@
 id: BL-011
 status: backlog
 priority: P1
-priority_rank: 30
+priority_rank: 40
 category: platform
 owner: unassigned
 created_at: 2026-08-13

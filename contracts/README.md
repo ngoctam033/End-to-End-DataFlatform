@@ -46,6 +46,23 @@ Invalid results preserve the submitted payload, use
 JSON Schema errors. The validator performs structural contract validation;
 source mapping and cross-record business rules remain separate stages.
 
+After structural validation, use `SourceBusinessRuleValidator` with related
+entity context:
+
+```python
+from contracts import SourceBusinessRuleValidator
+
+result = SourceBusinessRuleValidator().validate(
+    "payment",
+    canonical_payment_record,
+    context={"invoice": invoice_context, "previous_status": "PENDING"},
+)
+```
+
+The result is `ACCEPTED`, `REJECTED`, or `QUARANTINED`, has a deterministic
+`validation_id`, and contains versioned trace errors suitable for replay/DLQ.
+See `docs/data_contracts/04_business_rule_validation.md` for context contracts.
+
 ## Validate locally
 
 From the repository root:
@@ -56,6 +73,7 @@ python -m unittest -v tests.test_contract_schemas
 python -m unittest -v tests.test_source_mapping_matrix
 python -m unittest -v tests.test_contract_validator
 pytest -q tests/test_contracts.py
+pytest -q tests/test_business_rules.py
 ```
 
 The tests load every YAML document, verify it against the Draft 2020-12

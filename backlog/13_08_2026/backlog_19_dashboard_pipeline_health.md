@@ -2,7 +2,7 @@
 id: BL-019
 status: backlog
 priority: P1
-priority_rank: 110
+priority_rank: 120
 category: analytics
 owner: unassigned
 created_at: 2026-08-13

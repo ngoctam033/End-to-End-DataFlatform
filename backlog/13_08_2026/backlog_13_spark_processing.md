@@ -2,7 +2,7 @@
 id: BL-013
 status: backlog
 priority: P2
-priority_rank: 190
+priority_rank: 200
 category: architecture
 owner: unassigned
 created_at: 2026-08-13

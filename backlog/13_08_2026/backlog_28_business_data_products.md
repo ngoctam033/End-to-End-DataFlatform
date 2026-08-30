@@ -2,7 +2,7 @@
 id: BL-028
 status: backlog
 priority: P1
-priority_rank: 280
+priority_rank: 290
 category: analytics
 owner: unassigned
 created_at: 2026-08-15

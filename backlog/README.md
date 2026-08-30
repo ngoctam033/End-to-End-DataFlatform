@@ -19,6 +19,9 @@ value: high           # low | medium | high
 dependencies: []
 tags: []
 target_release: null
+workstream: core_platform       # nhom cong viec co the lap ke hoach/doc lap
+execution_mode: sequential      # sequential | parallel
+parallel_with: []               # cac workstream duoc phep chay song song
 ```
 
 ## Quy ước
@@ -27,5 +30,8 @@ target_release: null
 - `priority` thể hiện mức độ khẩn cấp; `priority_rank` là thứ tự thực hiện toàn cục, số nhỏ hơn được ưu tiên trước.
 - `effort` là ước lượng tương đối, không phải số giờ cam kết.
 - `dependencies` chứa ID của backlog phụ thuộc, ví dụ `BL-007`.
+- `workstream` gom các backlog cùng một luồng triển khai hoặc cùng bounded context.
+- `execution_mode: parallel` cho biết backlog thuộc luồng có thể triển khai đồng thời với các luồng trong `parallel_with`; trường này không làm mất hiệu lực của `dependencies`.
+- `parallel_with` chứa tên workstream, không chứa backlog ID. Các dependency trong cùng workstream vẫn phải hoàn thành theo thứ tự.
 - Khi cập nhật nội dung hoặc trạng thái, cập nhật `updated_at`.
 - Metadata trong từng file là nguồn thông tin chính; có thể tạo index tự động sau này.

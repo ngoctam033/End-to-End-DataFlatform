@@ -2,7 +2,7 @@
 id: BL-018
 status: backlog
 priority: P1
-priority_rank: 100
+priority_rank: 110
 category: reliability
 owner: unassigned
 created_at: 2026-08-13

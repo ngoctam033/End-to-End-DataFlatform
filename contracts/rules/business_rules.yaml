@@ -1,0 +1,86 @@
+version: "1.0.0"
+rules:
+  COMMON_BUSINESS_KEY_MISMATCH:
+    entities: [order, order_line, inventory, shipment, return, payment]
+    disposition: rejected
+    description: Business key must be derived from entity, source system and stable source identifiers.
+  CONTEXT_RELATIONSHIP_MISSING:
+    entities: [order_line, shipment, payment, return]
+    disposition: quarantined
+    description: Required related-entity context is unavailable, so the relationship cannot be verified.
+  ORDER_AMOUNT_MISMATCH:
+    entities: [order]
+    disposition: rejected
+    description: Net amount must equal gross amount minus discount amount.
+  ORDER_INVALID_STATUS_TRANSITION:
+    entities: [order]
+    disposition: rejected
+    description: Order status transition must follow the configured lifecycle.
+  ORDER_LINE_AMOUNT_MISMATCH:
+    entities: [order_line]
+    disposition: rejected
+    description: Line gross and net amounts must reconcile with quantity, price and discount.
+  INVENTORY_BALANCE_MISMATCH:
+    entities: [inventory]
+    disposition: rejected
+    description: Available quantity must equal on-hand minus reserved and reserved cannot exceed on-hand.
+  INVENTORY_LOT_DATE_INVALID:
+    entities: [inventory]
+    disposition: rejected
+    description: FMCG expiration date must be later than manufacturing date.
+  INVENTORY_MOVE_INVALID:
+    entities: [inventory]
+    disposition: rejected
+    description: Stock movement sign and value must match its movement type and unit cost.
+  SHIPMENT_INVALID_STATUS_TRANSITION:
+    entities: [shipment]
+    disposition: rejected
+    description: Shipment status transition must follow the configured lifecycle.
+  SHIPMENT_TIMELINE_INVALID:
+    entities: [shipment]
+    disposition: rejected
+    description: Shipment and delivery dates must follow the order and planned timeline.
+  SHIPMENT_DELIVERY_ATTEMPT_INVALID:
+    entities: [shipment]
+    disposition: rejected
+    description: Delivery attempts must follow shipment dates and failure-reason requirements.
+  SHIPMENT_SLA_POLICY_INVALID:
+    entities: [shipment]
+    disposition: rejected
+    description: Planned delivery window must not exceed the configured carrier SLA.
+  PAYMENT_INVALID_STATUS_TRANSITION:
+    entities: [payment]
+    disposition: rejected
+    description: Payment status transition must follow the configured lifecycle.
+  PAYMENT_EXCEEDS_OUTSTANDING:
+    entities: [payment]
+    disposition: rejected
+    description: Paid amount cannot exceed invoice outstanding amount.
+  PAYMENT_TIMELINE_INVALID:
+    entities: [payment]
+    disposition: rejected
+    description: Payment date cannot precede invoice date.
+  PAYMENT_RELATIONSHIP_MISMATCH:
+    entities: [payment]
+    disposition: rejected
+    description: Payment customer, invoice and order keys must match invoice context.
+  INVOICE_AMOUNT_MISMATCH:
+    entities: [payment]
+    disposition: rejected
+    description: Invoice net amount must reconcile gross, discount and tax amounts.
+  RETURN_QUANTITY_EXCEEDED:
+    entities: [return]
+    disposition: rejected
+    description: Return quantity cannot exceed sold quantity minus prior accepted returns.
+  RETURN_REFUND_EXCEEDED:
+    entities: [return]
+    disposition: rejected
+    description: Refund cannot exceed the proportional net amount of the returned line.
+  RETURN_TIMELINE_INVALID:
+    entities: [return]
+    disposition: rejected
+    description: Return date cannot precede order date.
+  RETURN_ORDER_STATUS_INVALID:
+    entities: [return]
+    disposition: rejected
+    description: Returns are allowed only for fulfilled, invoiced or paid orders.
