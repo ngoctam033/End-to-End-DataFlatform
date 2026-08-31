@@ -1,0 +1,7 @@
+interface:
+  display_name: "Manage Project Backlog"
+  short_description: "Plan and maintain repository backlog tasks"
+  default_prompt: "Use $manage-project-backlog to identify the next eligible task and parallel work."
+
+policy:
+  allow_implicit_invocation: true
